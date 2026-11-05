@@ -1,69 +1,97 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { saleStatus, useStore, won, type Product, type SaleStatus } from "./store";
+
+const BADGE: Record<SaleStatus, { label: string; cls: string }> = {
+  onsale: { label: "판매중", cls: "bg-lagoon-400 text-ocean-950" },
+  upcoming: { label: "판매예정", cls: "bg-amber-300 text-ocean-950" },
+  ended: { label: "판매종료", cls: "bg-ocean-900/20 text-ocean-900/60" },
+};
 
 export default function Home() {
+  const { products, ready, today } = useStore();
+  const order: SaleStatus[] = ["onsale", "upcoming", "ended"];
+  const sorted = ready ? [...products].sort((a, b) => order.indexOf(saleStatus(a, today)) - order.indexOf(saleStatus(b, today))) : [];
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <>
+      <section className="relative overflow-hidden bg-gradient-to-b from-ocean-950 via-ocean-900 to-ocean-600 text-white">
+        <div className="mx-auto max-w-6xl px-4 pb-24 pt-16 sm:pt-24">
+          <p className="text-sm font-semibold tracking-[0.3em] text-lagoon-300">FROM THE DEEP BLUE</p>
+          <h1 className="mt-3 text-4xl font-extrabold leading-tight sm:text-5xl">
+            바다 건너 온 열대의 맛,
+            <br />
+            고래가 실어 나릅니다 🐋
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-4 max-w-lg text-white/70">
+            필리핀, 코스타리카, 하와이… 산지에서 완숙된 열대과일을 콜드체인으로 직송합니다. 모든 상품은 kg 단위로 판매돼요.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <svg className="absolute bottom-0 left-0 w-full text-sand-50" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden>
+          <path fill="currentColor" d="M0,40 C240,80 480,0 720,32 C960,64 1200,10 1440,40 L1440,80 L0,80 Z" />
+        </svg>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-12">
+        <h2 className="mb-6 text-2xl font-bold">이번 시즌 열대과일</h2>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {sorted.map((p) => (
+            <ProductCard key={p.id} p={p} />
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+    </>
+  );
+}
+
+function ProductCard({ p }: { p: Product }) {
+  const { addToCart, today } = useStore();
+  const [kg, setKg] = useState(1);
+  const [added, setAdded] = useState(false);
+  const status = saleStatus(p, today);
+
+  return (
+    <article className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-ocean-900/5 transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-start justify-between">
+        <div className="grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br from-lagoon-300/40 to-ocean-600/10 text-5xl">
+          {p.emoji}
+        </div>
+        <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${BADGE[status].cls}`}>{BADGE[status].label}</span>
+      </div>
+      <h3 className="mt-4 text-lg font-bold">{p.name}</h3>
+      <p className="text-xs text-ocean-600">📍 {p.origin}</p>
+      <p className="mt-2 flex-1 text-sm text-ocean-900/70">{p.description}</p>
+      <p className="mt-3 text-xs text-ocean-900/50">
+        판매기간 {p.saleStart} ~ {p.saleEnd}
+      </p>
+      <p className="mt-1 text-xl font-extrabold text-ocean-800">
+        {won(p.pricePerKg)} <span className="text-sm font-medium text-ocean-900/50">/ kg</span>
+      </p>
+      <div className="mt-4 flex gap-2">
+        <select
+          className="field w-24"
+          value={kg}
+          onChange={(e) => setKg(Number(e.target.value))}
+          disabled={status !== "onsale"}
+          aria-label="수량(kg)"
+        >
+          {[1, 2, 3, 5, 10].map((n) => (
+            <option key={n} value={n}>{n}kg</option>
+          ))}
+        </select>
+        <button
+          className="btn flex-1"
+          disabled={status !== "onsale"}
+          onClick={() => {
+            addToCart(p.id, kg);
+            setAdded(true);
+            setTimeout(() => setAdded(false), 1200);
+          }}
+        >
+          {status !== "onsale" ? BADGE[status].label : added ? "담았어요 ✓" : `장바구니 · ${won(p.pricePerKg * kg)}`}
+        </button>
+      </div>
+    </article>
   );
 }
