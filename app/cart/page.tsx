@@ -86,7 +86,7 @@ export default function CartPage() {
             <li key={p!.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-sm bg-white p-4 border border-ink-900/10">
               <FruitImage p={p!} className="h-16 w-16 shrink-0 rounded-sm text-3xl" />
               <div className="min-w-0 flex-1">
-                <p className="font-bold">{p!.name}</p>
+                <Link href={`/product/${p!.id}`} className="font-serif text-lg hover:underline">{p!.name}</Link>
                 <p className="text-xs text-ink-900/50">{won(p!.pricePerKg)} / kg · {p!.origin}</p>
               </div>
               {/* mobile: drops to its own row under the name */}

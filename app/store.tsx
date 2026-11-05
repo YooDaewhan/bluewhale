@@ -39,6 +39,7 @@ export const ACCOUNTS: (User & { pw: string })[] = [
 ];
 
 export type SaleStatus = "upcoming" | "onsale" | "ended";
+export const STATUS_EN: Record<SaleStatus, string> = { onsale: "Available", upcoming: "Coming Soon", ended: "Sold Out" };
 export function saleStatus(p: Product, today: string): SaleStatus {
   if (today < p.saleStart) return "upcoming";
   if (today > p.saleEnd) return "ended";

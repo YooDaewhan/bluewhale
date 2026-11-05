@@ -3,9 +3,9 @@
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
 import HeroSlider from "./hero-slider";
-import { FruitImage, saleStatus, useStore, won, type Product, type SaleStatus } from "./store";
+import Link from "next/link";
+import { FruitImage, saleStatus, STATUS_EN as LABEL, useStore, won, type Product, type SaleStatus } from "./store";
 
-const LABEL: Record<SaleStatus, string> = { onsale: "Available", upcoming: "Coming Soon", ended: "Sold Out" };
 const FILTERS: { key: SaleStatus | "all"; label: string }[] = [
   { key: "all", label: "All" },
   { key: "onsale", label: "Available" },
@@ -111,7 +111,9 @@ function ProductCard({ p }: { p: Product }) {
   return (
     <article className="group flex flex-col">
       <div className="relative aspect-[4/5] overflow-hidden bg-gold-300/30">
-        <FruitImage p={p} className={`h-full w-full text-7xl transition duration-[1200ms] ease-out group-hover:scale-105 ${buyable ? "" : "opacity-60 grayscale"}`} />
+        <Link href={`/product/${p.id}`} className="block h-full" aria-label={`${p.name} 상세 보기`}>
+          <FruitImage p={p} className={`h-full w-full text-7xl transition duration-[1200ms] ease-out group-hover:scale-105 ${buyable ? "" : "opacity-60 grayscale"}`} />
+        </Link>
         <span className="absolute left-3 top-3 bg-ivory/90 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-ink-900">{LABEL[status]}</span>
         {buyable && (
           <button
@@ -129,7 +131,9 @@ function ProductCard({ p }: { p: Product }) {
 
       <div className="mt-4 flex flex-1 flex-col">
         <p className="text-[10px] uppercase tracking-[0.25em] text-ink-900/50">{p.origin}</p>
-        <h3 className="mt-1 font-serif text-xl">{p.name}</h3>
+        <h3 className="mt-1 font-serif text-xl">
+          <Link href={`/product/${p.id}`} className="underline-offset-4 hover:underline">{p.name}</Link>
+        </h3>
         <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-600">{p.description}</p>
         <p className="mt-2 text-sm">
           {won(p.pricePerKg)} <span className="text-ink-900/50">/ kg</span>
