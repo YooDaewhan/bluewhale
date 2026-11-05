@@ -18,7 +18,7 @@ export default function AdminPage() {
     return (
       <div className="px-4 py-24 text-center">
         <img src="/brand/whale-fruits.webp" alt="" className="mx-auto h-32 w-auto" />
-        <p className="mt-3 text-ocean-900/60">관리자만 접근할 수 있는 페이지입니다.</p>
+        <p className="mt-3 text-ink-900/60">관리자만 접근할 수 있는 페이지입니다.</p>
         <Link href="/login" className="btn mt-6 inline-block">관리자 로그인</Link>
       </div>
     );
@@ -36,12 +36,12 @@ export default function AdminPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">상품 관리</h1>
-          <p className="text-sm text-ocean-900/50">목업 관리자 · 변경 내용은 이 브라우저에만 저장됩니다.</p>
+          <h1 className="font-serif text-3xl">상품 관리</h1>
+          <p className="text-sm text-ink-900/50">목업 관리자 · 변경 내용은 이 브라우저에만 저장됩니다.</p>
         </div>
         <div className="flex gap-2">
           <button
-            className="rounded-lg border border-ocean-900/15 px-4 py-2 text-sm hover:bg-white"
+            className="rounded-sm border border-ink-900/15 px-4 py-2 text-sm hover:bg-white"
             onClick={() => confirm("상품 목록을 초기 데이터로 되돌릴까요?") && setProducts(() => INITIAL_PRODUCTS)}
           >
             초기화
@@ -56,9 +56,9 @@ export default function AdminPage() {
         <Stat label="판매예정·종료" value={products.length - onsale} />
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl bg-white shadow-sm">
+      <div className="mt-6 overflow-x-auto rounded-sm bg-white border border-ink-900/10">
         <table className="w-full min-w-[720px] text-sm">
-          <thead className="bg-ocean-900/5 text-left text-xs text-ocean-900/60">
+          <thead className="bg-ink-900/5 text-left text-xs text-ink-900/60">
             <tr>
               <th className="p-3">상품</th>
               <th className="p-3">원산지</th>
@@ -70,17 +70,17 @@ export default function AdminPage() {
           </thead>
           <tbody>
             {products.map((p) => (
-              <tr key={p.id} className="border-t border-ocean-900/5">
+              <tr key={p.id} className="border-t border-ink-900/5">
                 <td className="p-3 font-semibold">
-                  <FruitImage p={p} className="mr-3 inline-grid h-10 w-10 rounded-lg align-middle text-xl" />
+                  <FruitImage p={p} className="mr-3 inline-grid h-10 w-10 rounded-sm align-middle text-xl" />
                   {p.name}
                 </td>
-                <td className="p-3 text-ocean-900/70">{p.origin}</td>
+                <td className="p-3 text-ink-900/70">{p.origin}</td>
                 <td className="p-3 text-right font-semibold">{won(p.pricePerKg)}</td>
-                <td className="p-3 text-xs text-ocean-900/70">{p.saleStart} ~ {p.saleEnd}</td>
+                <td className="p-3 text-xs text-ink-900/70">{p.saleStart} ~ {p.saleEnd}</td>
                 <td className="p-3 text-xs">{STATUS_LABEL[saleStatus(p, today)]}</td>
                 <td className="whitespace-nowrap p-3 text-right">
-                  <button className="mr-3 text-ocean-600 hover:underline" onClick={() => setEditing(p)}>수정</button>
+                  <button className="mr-3 text-ink-600 hover:underline" onClick={() => setEditing(p)}>수정</button>
                   <button
                     className="text-coral-500 hover:underline"
                     onClick={() => confirm(`'${p.name}'을(를) 삭제할까요?`) && setProducts((l) => l.filter((x) => x.id !== p.id))}
@@ -101,9 +101,9 @@ export default function AdminPage() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-ocean-900 to-ocean-600 p-4 text-white">
-      <p className="text-xs text-white/60">{label}</p>
-      <p className="text-2xl font-extrabold">{value}</p>
+    <div className="border border-ink-900/10 bg-white p-5">
+      <p className="eyebrow">{label}</p>
+      <p className="mt-2 font-serif text-4xl">{value}</p>
     </div>
   );
 }
@@ -129,9 +129,9 @@ function ProductForm({
   }
 
   return (
-    <div className="fixed inset-0 z-30 grid place-items-center bg-ocean-950/60 p-4" onClick={onCancel}>
-      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="w-full max-w-lg space-y-3 rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-bold">{"id" in initial ? "상품 수정" : "상품 등록"}</h2>
+    <div className="fixed inset-0 z-30 grid place-items-center bg-ink-950/60 p-4" onClick={onCancel}>
+      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="w-full max-w-lg space-y-3 rounded-sm bg-white p-6 shadow-xl">
+        <h2 className="font-serif text-xl">{"id" in initial ? "상품 수정" : "상품 등록"}</h2>
         <div className="grid grid-cols-[80px_1fr] gap-3">
           <Label text="이모지">
             <input className="field text-center text-2xl" value={p.emoji} onChange={(e) => set("emoji", e.target.value)} maxLength={4} required />
@@ -141,7 +141,7 @@ function ProductForm({
           </Label>
         </div>
         <div className="grid grid-cols-[80px_1fr] items-end gap-3">
-          <FruitImage key={p.image} p={p} className="h-[68px] w-20 rounded-lg text-3xl" />
+          <FruitImage key={p.image} p={p} className="h-[68px] w-20 rounded-sm text-3xl" />
           <Label text="상품 사진 URL (비우면 이모지 표시)">
             <input className="field" type="url" placeholder="https://..." value={p.image} onChange={(e) => set("image", e.target.value)} />
           </Label>
@@ -165,7 +165,7 @@ function ProductForm({
         </Label>
         {error && <p className="text-sm text-coral-500">{error}</p>}
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" className="rounded-lg px-4 py-2 text-sm hover:bg-ocean-900/5" onClick={onCancel}>취소</button>
+          <button type="button" className="rounded-sm px-4 py-2 text-sm hover:bg-ink-900/5" onClick={onCancel}>취소</button>
           <button className="btn">저장</button>
         </div>
       </form>
@@ -175,7 +175,7 @@ function ProductForm({
 
 function Label({ text, children }: { text: string; children: React.ReactNode }) {
   return (
-    <label className="block text-xs font-semibold text-ocean-900/60">
+    <label className="block text-xs font-semibold text-ink-900/60">
       {text}
       <div className="mt-1">{children}</div>
     </label>

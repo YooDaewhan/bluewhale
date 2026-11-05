@@ -30,23 +30,23 @@ export default function LoginPage() {
     <div className="mx-auto max-w-sm px-4 py-16">
       <div className="mb-6 text-center">
         <img src="/brand/logo.webp" alt="Bluewhale The Fruit" className="mx-auto h-44 w-auto" />
-        <h1 className="mt-4 text-xl font-bold">로그인</h1>
+        <h1 className="mt-4 font-serif text-2xl">로그인</h1>
       </div>
 
-      <div className="mb-4 grid grid-cols-2 rounded-lg bg-ocean-900/5 p-1 text-sm font-semibold">
+      <div className="mb-4 grid grid-cols-2 rounded-sm bg-ink-900/5 p-1 text-sm font-semibold">
         {(Object.keys(DEMO) as Role[]).map((r) => (
           <button
             key={r}
             type="button"
             onClick={() => { setRole(r); setError(""); }}
-            className={`rounded-md py-2 ${role === r ? "bg-white shadow text-ocean-800" : "text-ocean-900/50"}`}
+            className={`rounded-md py-2 ${role === r ? "bg-white shadow text-ink-800" : "text-ink-900/50"}`}
           >
             {DEMO[r].label}
           </button>
         ))}
       </div>
 
-      <form onSubmit={submit} className="space-y-3 rounded-2xl bg-white p-6 shadow-sm">
+      <form onSubmit={submit} className="space-y-3 rounded-sm bg-white p-6 border border-ink-900/10">
         <input className="field" placeholder="아이디" value={id} onChange={(e) => setId(e.target.value)} autoComplete="username" />
         <input className="field" type="password" placeholder="비밀번호" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" />
         {error && <p className="text-sm text-coral-500">{error}</p>}
@@ -54,7 +54,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() => { setId(DEMO[role].id); setPw(DEMO[role].pw); }}
-          className="w-full text-xs text-ocean-600 underline"
+          className="w-full text-xs text-ink-600 underline"
         >
           데모 {DEMO[role].label} 계정 채우기 ({DEMO[role].id} / {DEMO[role].pw})
         </button>

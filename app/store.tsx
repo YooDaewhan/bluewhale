@@ -129,7 +129,7 @@ export function useStore() {
 export function FruitImage({ p, className = "" }: { p: Pick<Product, "image" | "emoji" | "name">; className?: string }) {
   const [broken, setBroken] = useState(false);
   if (!p.image || broken)
-    return <div className={`grid place-items-center bg-gradient-to-br from-lagoon-300/40 to-ocean-600/10 ${className}`}>{p.emoji}</div>;
+    return <div className={`grid place-items-center bg-gradient-to-br from-gold-300/40 to-ink-600/10 ${className}`}>{p.emoji}</div>;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={p.image} alt={p.name} loading="lazy" onError={() => setBroken(true)} className={`object-cover ${className}`} />;
 }
