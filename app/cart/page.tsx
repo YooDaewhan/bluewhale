@@ -77,22 +77,25 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1fr_380px]">
-      <section>
+      <section className="min-w-0">
         <h1 className="mb-4 text-2xl font-bold">장바구니</h1>
         <ul className="space-y-3">
           {lines.map(({ p, kg }) => (
-            <li key={p!.id} className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm">
+            <li key={p!.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl bg-white p-4 shadow-sm">
               <FruitImage p={p!} className="h-16 w-16 shrink-0 rounded-xl text-3xl" />
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <p className="font-bold">{p!.name}</p>
                 <p className="text-xs text-ocean-900/50">{won(p!.pricePerKg)} / kg · {p!.origin}</p>
               </div>
-              <div className="flex items-center gap-1">
-                <button className="h-8 w-8 rounded-full bg-ocean-900/5" onClick={() => setKg(p!.id, kg - 1)} aria-label="1kg 빼기">−</button>
-                <span className="w-12 text-center font-semibold">{kg}kg</span>
-                <button className="h-8 w-8 rounded-full bg-ocean-900/5" onClick={() => setKg(p!.id, kg + 1)} aria-label="1kg 더하기">+</button>
+              {/* mobile: drops to its own row under the name */}
+              <div className="flex w-full items-center justify-between gap-4 sm:w-auto">
+                <div className="flex items-center gap-1">
+                  <button className="h-8 w-8 rounded-full bg-ocean-900/5" onClick={() => setKg(p!.id, kg - 1)} aria-label="1kg 빼기">−</button>
+                  <span className="w-12 text-center font-semibold">{kg}kg</span>
+                  <button className="h-8 w-8 rounded-full bg-ocean-900/5" onClick={() => setKg(p!.id, kg + 1)} aria-label="1kg 더하기">+</button>
+                </div>
+                <p className="whitespace-nowrap text-right font-bold sm:w-24">{won(p!.pricePerKg * kg)}</p>
               </div>
-              <p className="w-24 text-right font-bold">{won(p!.pricePerKg * kg)}</p>
             </li>
           ))}
         </ul>
