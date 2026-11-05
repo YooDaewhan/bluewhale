@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { INITIAL_PRODUCTS, saleStatus, useStore, won, type Product } from "../store";
+import { FruitImage, INITIAL_PRODUCTS, saleStatus, useStore, won, type Product } from "../store";
 
-const EMPTY: Omit<Product, "id"> = { emoji: "🍍", name: "", origin: "", pricePerKg: 10000, description: "", saleStart: "", saleEnd: "" };
+const EMPTY: Omit<Product, "id"> = { emoji: "🍍", image: "", name: "", origin: "", pricePerKg: 10000, description: "", saleStart: "", saleEnd: "" };
 const STATUS_LABEL = { onsale: "판매중", upcoming: "판매예정", ended: "판매종료" };
 
 export default function AdminPage() {
@@ -70,7 +70,7 @@ export default function AdminPage() {
             {products.map((p) => (
               <tr key={p.id} className="border-t border-ocean-900/5">
                 <td className="p-3 font-semibold">
-                  <span className="mr-2 text-2xl">{p.emoji}</span>
+                  <FruitImage p={p} className="mr-3 inline-grid h-10 w-10 rounded-lg align-middle text-xl" />
                   {p.name}
                 </td>
                 <td className="p-3 text-ocean-900/70">{p.origin}</td>
@@ -136,6 +136,12 @@ function ProductForm({
           </Label>
           <Label text="상품명">
             <input className="field" value={p.name} onChange={(e) => set("name", e.target.value)} required />
+          </Label>
+        </div>
+        <div className="grid grid-cols-[80px_1fr] items-end gap-3">
+          <FruitImage key={p.image} p={p} className="h-[68px] w-20 rounded-lg text-3xl" />
+          <Label text="상품 사진 URL (비우면 이모지 표시)">
+            <input className="field" type="url" placeholder="https://..." value={p.image} onChange={(e) => set("image", e.target.value)} />
           </Label>
         </div>
         <div className="grid grid-cols-2 gap-3">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { saleStatus, useStore, won, type Product, type SaleStatus } from "./store";
+import HeroSlider from "./hero-slider";
+import { FruitImage, saleStatus, useStore, won, type Product, type SaleStatus } from "./store";
 
 const BADGE: Record<SaleStatus, { label: string; cls: string }> = {
   onsale: { label: "판매중", cls: "bg-lagoon-400 text-ocean-950" },
@@ -16,25 +17,11 @@ export default function Home() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-b from-ocean-950 via-ocean-900 to-ocean-600 text-white">
-        <div className="mx-auto max-w-6xl px-4 pb-24 pt-16 sm:pt-24">
-          <p className="text-sm font-semibold tracking-[0.3em] text-lagoon-300">FROM THE DEEP BLUE</p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-tight sm:text-5xl">
-            바다 건너 온 열대의 맛,
-            <br />
-            고래가 실어 나릅니다 🐋
-          </h1>
-          <p className="mt-4 max-w-lg text-white/70">
-            필리핀, 코스타리카, 하와이… 산지에서 완숙된 열대과일을 콜드체인으로 직송합니다. 모든 상품은 kg 단위로 판매돼요.
-          </p>
-        </div>
-        <svg className="absolute bottom-0 left-0 w-full text-sand-50" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden>
-          <path fill="currentColor" d="M0,40 C240,80 480,0 720,32 C960,64 1200,10 1440,40 L1440,80 L0,80 Z" />
-        </svg>
-      </section>
+      <HeroSlider />
 
-      <section className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="mb-6 text-2xl font-bold">이번 시즌 열대과일</h2>
+      <section id="products" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-12">
+        <p className="text-xs font-semibold tracking-[0.3em] text-ocean-600">FROM THE DEEP BLUE</p>
+        <h2 className="mb-6 mt-1 text-2xl font-bold">이번 시즌 열대과일</h2>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((p) => (
             <ProductCard key={p.id} p={p} />
@@ -52,14 +39,13 @@ function ProductCard({ p }: { p: Product }) {
   const status = saleStatus(p, today);
 
   return (
-    <article className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-ocean-900/5 transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex items-start justify-between">
-        <div className="grid h-20 w-20 place-items-center rounded-2xl bg-gradient-to-br from-lagoon-300/40 to-ocean-600/10 text-5xl">
-          {p.emoji}
-        </div>
-        <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${BADGE[status].cls}`}>{BADGE[status].label}</span>
+    <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-ocean-900/5 transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <FruitImage p={p} className={`h-full w-full text-7xl transition duration-500 group-hover:scale-105 ${status !== "onsale" ? "grayscale-[60%]" : ""}`} />
+        <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold shadow ${BADGE[status].cls}`}>{BADGE[status].label}</span>
       </div>
-      <h3 className="mt-4 text-lg font-bold">{p.name}</h3>
+      <div className="flex flex-1 flex-col p-5">
+      <h3 className="text-lg font-bold">{p.name}</h3>
       <p className="text-xs text-ocean-600">📍 {p.origin}</p>
       <p className="mt-2 flex-1 text-sm text-ocean-900/70">{p.description}</p>
       <p className="mt-3 text-xs text-ocean-900/50">
@@ -91,6 +77,7 @@ function ProductCard({ p }: { p: Product }) {
         >
           {status !== "onsale" ? BADGE[status].label : added ? "담았어요 ✓" : `장바구니 · ${won(p.pricePerKg * kg)}`}
         </button>
+      </div>
       </div>
     </article>
   );

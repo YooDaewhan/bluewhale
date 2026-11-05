@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useStore, won } from "../store";
+import { FruitImage, useStore, won } from "../store";
 
 const SHIPPING_FEE = 3500;
 const FREE_SHIPPING_OVER = 50000;
@@ -82,7 +82,7 @@ export default function CartPage() {
         <ul className="space-y-3">
           {lines.map(({ p, kg }) => (
             <li key={p!.id} className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm">
-              <span className="text-4xl">{p!.emoji}</span>
+              <FruitImage p={p!} className="h-16 w-16 shrink-0 rounded-xl text-3xl" />
               <div className="flex-1">
                 <p className="font-bold">{p!.name}</p>
                 <p className="text-xs text-ocean-900/50">{won(p!.pricePerKg)} / kg · {p!.origin}</p>

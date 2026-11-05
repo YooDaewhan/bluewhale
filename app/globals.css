@@ -18,9 +18,12 @@ body {
   font-family: var(--font-sans);
 }
 
-.field {
-  @apply w-full rounded-lg border border-ocean-900/15 bg-white px-3 py-2 text-sm outline-none focus:border-ocean-600 focus:ring-2 focus:ring-lagoon-300;
-}
-.btn {
-  @apply rounded-lg bg-ocean-800 px-4 py-2 text-sm font-semibold text-white hover:bg-ocean-600 disabled:cursor-not-allowed disabled:bg-ocean-900/30;
+/* in components layer so utilities like w-24 can override */
+@layer components {
+  .field {
+    @apply w-full rounded-lg border border-ocean-900/15 bg-white px-3 py-2 text-sm outline-none focus:border-ocean-600 focus:ring-2 focus:ring-lagoon-300;
+  }
+  .btn {
+    @apply rounded-lg bg-ocean-800 px-4 py-2 text-sm font-semibold text-white hover:bg-ocean-600 disabled:cursor-not-allowed disabled:bg-ocean-900/30;
+  }
 }
