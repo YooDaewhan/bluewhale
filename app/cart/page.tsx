@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import Link from "next/link";
 import { useState } from "react";
 import { FruitImage, useStore, won } from "../store";
@@ -42,7 +44,7 @@ export default function CartPage() {
   if (done)
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <div className="text-6xl">🐋💦</div>
+        <img src="/brand/mascot.webp" alt="" className="mx-auto h-48 w-auto animate-bounce [animation-duration:2s]" />
         <h1 className="mt-4 text-2xl font-bold">주문이 접수되었습니다!</h1>
         <p className="mt-1 text-sm text-ocean-900/60">고래가 열심히 헤엄쳐 가고 있어요. (데모: 실제 주문은 저장되지 않습니다)</p>
         <dl className="mt-8 space-y-2 rounded-2xl bg-white p-6 text-left text-sm shadow-sm">
@@ -69,7 +71,7 @@ export default function CartPage() {
   if (lines.length === 0)
     return (
       <div className="px-4 py-24 text-center">
-        <div className="text-5xl">🌊</div>
+        <img src="/brand/whale-flower.webp" alt="" className="mx-auto h-40 w-auto" />
         <p className="mt-3 text-ocean-900/60">장바구니가 비어 있어요.</p>
         <Link href="/" className="btn mt-6 inline-block">열대과일 보러가기</Link>
       </div>

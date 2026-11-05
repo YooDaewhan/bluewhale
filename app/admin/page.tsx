@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import Link from "next/link";
 import { useState } from "react";
 import { FruitImage, INITIAL_PRODUCTS, saleStatus, useStore, won, type Product } from "../store";
@@ -15,7 +17,7 @@ export default function AdminPage() {
   if (user?.role !== "admin")
     return (
       <div className="px-4 py-24 text-center">
-        <div className="text-5xl">🔒</div>
+        <img src="/brand/whale-fruits.webp" alt="" className="mx-auto h-32 w-auto" />
         <p className="mt-3 text-ocean-900/60">관리자만 접근할 수 있는 페이지입니다.</p>
         <Link href="/login" className="btn mt-6 inline-block">관리자 로그인</Link>
       </div>

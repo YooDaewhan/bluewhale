@@ -20,8 +20,14 @@ export default function Home() {
       <HeroSlider />
 
       <section id="products" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-12">
-        <p className="text-xs font-semibold tracking-[0.3em] text-ocean-600">FROM THE DEEP BLUE</p>
-        <h2 className="mb-6 mt-1 text-2xl font-bold">이번 시즌 열대과일</h2>
+        <div className="mb-6 flex items-end gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/whale-flower.webp" alt="" className="h-20 w-auto" />
+          <div>
+            <p className="text-xs font-semibold tracking-[0.3em] text-brand">FROM THE DEEP BLUE</p>
+            <h2 className="mt-1 text-2xl font-bold">이번 시즌 열대과일</h2>
+          </div>
+        </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((p) => (
             <ProductCard key={p.id} p={p} />

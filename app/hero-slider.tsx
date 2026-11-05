@@ -38,12 +38,15 @@ export default function HeroSlider() {
               <h1 className="mt-3 whitespace-pre-line text-3xl font-extrabold leading-tight drop-shadow sm:text-5xl">{s.title}</h1>
               <p className="mt-4 max-w-md text-white/80">{s.text}</p>
               <a href="#products" className="mt-6 w-fit rounded-full bg-lagoon-400 px-5 py-2.5 text-sm font-bold text-ocean-950 hover:bg-lagoon-300">
-                🐋 시즌 과일 보러가기
+                시즌 과일 보러가기 →
               </a>
             </div>
           </div>
         ))}
       </div>
+
+      {/* mascot runs across every slide */}
+      <img src="/brand/mascot.webp" alt="" className="pointer-events-none absolute bottom-8 right-16 hidden h-60 w-auto drop-shadow-2xl md:block lg:right-24 lg:h-80" />
 
       <button onClick={() => go(i - 1)} className="absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 rounded-full bg-white/20 text-xl backdrop-blur hover:bg-white/35 sm:block" aria-label="이전 슬라이드">‹</button>
       <button onClick={() => go(i + 1)} className="absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 rounded-full bg-white/20 text-xl backdrop-blur hover:bg-white/35 sm:block" aria-label="다음 슬라이드">›</button>

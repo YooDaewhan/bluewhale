@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useStore, type Role } from "../store";
@@ -27,8 +29,8 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-sm px-4 py-16">
       <div className="mb-6 text-center">
-        <div className="text-5xl">🐋</div>
-        <h1 className="mt-2 text-2xl font-bold">블루웨일 로그인</h1>
+        <img src="/brand/logo.webp" alt="Bluewhale The Fruit" className="mx-auto h-44 w-auto" />
+        <h1 className="mt-4 text-xl font-bold">로그인</h1>
       </div>
 
       <div className="mb-4 grid grid-cols-2 rounded-lg bg-ocean-900/5 p-1 text-sm font-semibold">
