@@ -15,7 +15,8 @@ export default function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:grid sm:grid-cols-[1fr_auto_1fr]">
         <nav className="hidden items-center gap-5 sm:flex">
           <Link href="/#products" className={`hidden sm:inline ${item}`}>Collection</Link>
-          <Link href="/#story" className={`hidden sm:inline ${item}`}>Story</Link>
+          <Link href="/basket" className={`hidden sm:inline ${item}`}>Gift Basket</Link>
+          <Link href="/#story" className={`hidden lg:inline ${item}`}>Story</Link>
         </nav>
 
         <Link href="/" className="flex items-center gap-2" aria-label="Bluewhale The Fruit 홈">

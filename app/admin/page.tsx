@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { FruitImage, INITIAL_PRODUCTS, saleStatus, useStore, won, type Product } from "../store";
+import ReservationCalendar from "./calendar";
 
 const EMPTY: Omit<Product, "id"> = { emoji: "🍍", image: "", name: "", origin: "", pricePerKg: 10000, description: "", saleStart: "", saleEnd: "" };
 const STATUS_LABEL = { onsale: "판매중", upcoming: "판매예정", ended: "판매종료" };
@@ -12,6 +13,7 @@ const STATUS_LABEL = { onsale: "판매중", upcoming: "판매예정", ended: "�
 export default function AdminPage() {
   const { ready, today, user, products, setProducts } = useStore();
   const [editing, setEditing] = useState<Product | Omit<Product, "id"> | null>(null);
+  const [tab, setTab] = useState<"reservations" | "products">("reservations");
 
   if (!ready) return null;
   if (user?.role !== "admin")
@@ -34,6 +36,24 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mb-10 flex gap-6 border-b border-ink-900/10" role="tablist">
+        {([["reservations", "픽업 예약 캘린더"], ["products", "상품 관리"]] as const).map(([key, label]) => (
+          <button
+            key={key}
+            role="tab"
+            aria-selected={tab === key}
+            onClick={() => setTab(key)}
+            className={`-mb-px border-b-2 pb-3 text-sm ${tab === key ? "border-ink-950 font-semibold" : "border-transparent text-ink-900/40 hover:text-ink-950"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "reservations" ? (
+        <ReservationCalendar />
+      ) : (
+      <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-serif text-3xl">상품 관리</h1>
@@ -95,6 +115,8 @@ export default function AdminPage() {
       </div>
 
       {editing && <ProductForm key={"id" in editing ? editing.id : "new"} initial={editing} onSave={save} onCancel={() => setEditing(null)} />}
+      </>
+      )}
     </div>
   );
 }

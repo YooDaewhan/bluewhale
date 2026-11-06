@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { MOCK_RESERVATIONS, type Reservation, type ReservationStatus } from "./basket-data";
 
 export type Product = {
   id: number;
@@ -80,6 +81,9 @@ type Store = {
   addToCart: (productId: number, kg: number) => void;
   setKg: (productId: number, kg: number) => void;
   clearCart: () => void;
+  reservations: Reservation[];
+  addReservation: (r: Omit<Reservation, "id" | "status">) => Reservation;
+  setReservationStatus: (id: string, status: ReservationStatus) => void;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -88,12 +92,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts, r1] = usePersisted("bw-products-v2", INITIAL_PRODUCTS);
   const [user, setUser, r2] = usePersisted<User | null>("bw-user", null);
   const [cart, setCart, r3] = usePersisted<CartItem[]>("bw-cart", []);
-  // read the clock after mount, not during prerender
+  const [reservations, setReservations, r4] = usePersisted<Reservation[]>("bw-reservations", MOCK_RESERVATIONS);
+  // read the clock after mount, not during prerender; sv-SE gives local YYYY-MM-DD (UTC would be a day off in KST mornings)
   const [today, setToday] = useState("");
-  useEffect(() => setToday(new Date().toISOString().slice(0, 10)), []);
+  useEffect(() => setToday(new Date().toLocaleDateString("sv-SE")), []);
 
   const store: Store = {
-    ready: r1 && r2 && r3 && today !== "",
+    ready: r1 && r2 && r3 && r4 && today !== "",
     today,
     products,
     setProducts,
@@ -115,6 +120,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setKg: (productId, kg) =>
       setCart((c) => (kg <= 0 ? c.filter((i) => i.productId !== productId) : c.map((i) => (i.productId === productId ? { ...i, kg } : i)))),
     clearCart: () => setCart([]),
+    reservations,
+    addReservation(data) {
+      const res: Reservation = { ...data, id: "R-" + Date.now().toString().slice(-6), status: "예약" };
+      setReservations((list) => [...list, res]);
+      return res;
+    },
+    setReservationStatus: (id, status) => setReservations((list) => list.map((x) => (x.id === id ? { ...x, status } : x))),
   };
 
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;

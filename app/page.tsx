@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
+import GiftBaskets from "./gift-baskets";
 import HeroSlider from "./hero-slider";
 import Link from "next/link";
 import { FruitImage, saleStatus, STATUS_EN as LABEL, useStore, won, type Product, type SaleStatus } from "./store";
@@ -69,6 +70,8 @@ export default function Home() {
         </div>
         {ready && shown.length === 0 && <p className="py-20 text-center font-serif text-xl italic text-ink-600">해당하는 상품이 없습니다.</p>}
       </section>
+
+      <GiftBaskets />
 
       <section className="border-y border-ink-900/10 bg-white/50">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:grid-cols-3">
