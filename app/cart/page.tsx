@@ -4,16 +4,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { Order } from "../order-data";
 import { FruitImage, useStore, won } from "../store";
 
 const SHIPPING_FEE = 3500;
 const FREE_SHIPPING_OVER = 50000;
 const MESSAGES = ["문 앞에 놓아주세요", "경비실에 맡겨주세요", "배송 전 연락 부탁드려요", "파손 주의 부탁드립니다", "직접 입력"];
 
-type Done = { orderNo: string; name: string; phone: string; address: string; message: string; total: number; lines: string[] };
+type Done = Order;
 
 export default function CartPage() {
-  const { ready, user, products, cart, setKg, clearCart } = useStore();
+  const { ready, user, products, cart, setKg, clearCart, addOrder } = useStore();
   const [msgPreset, setMsgPreset] = useState(MESSAGES[0]);
   const [done, setDone] = useState<Done | null>(null);
 
@@ -24,20 +25,20 @@ export default function CartPage() {
   const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_OVER ? 0 : SHIPPING_FEE;
   const total = subtotal + shipping;
 
-  // ponytail: order is only shown, never saved
+  // ponytail: saved to localStorage only (mock), so admin/customer views in this browser can see it
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const address = `(${f.get("zip")}) ${f.get("addr1")} ${f.get("addr2")}`.trim();
-    setDone({
-      orderNo: "BW" + Date.now().toString().slice(-8),
-      name: String(f.get("name")),
-      phone: String(f.get("phone")),
-      address,
-      message: msgPreset === "직접 입력" ? String(f.get("customMsg") || "-") : msgPreset,
-      total,
-      lines: lines.map((l) => `${l.p!.emoji} ${l.p!.name} ${l.kg}kg`),
-    });
+    setDone(
+      addOrder({
+        name: String(f.get("name")),
+        phone: String(f.get("phone")),
+        address: `(${f.get("zip")}) ${f.get("addr1")} ${f.get("addr2")}`.trim(),
+        message: msgPreset === "직접 입력" ? String(f.get("customMsg") || "-") : msgPreset,
+        total,
+        lines: lines.map((l) => ({ productId: l.p!.id, emoji: l.p!.emoji, name: l.p!.name, kg: l.kg, pricePerKg: l.p!.pricePerKg })),
+      }),
+    );
     clearCart();
   }
 
@@ -46,14 +47,14 @@ export default function CartPage() {
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
         <img src="/brand/mascot.webp" alt="" className="mx-auto h-48 w-auto" />
         <h1 className="mt-4 font-serif text-3xl">Thank you — 주문이 접수되었습니다</h1>
-        <p className="mt-1 text-sm text-ink-900/60">고래가 열심히 헤엄쳐 가고 있어요. (데모: 실제 주문은 저장되지 않습니다)</p>
+        <p className="mt-1 text-sm text-ink-900/60">발송되면 내 주문에서 송장번호를 확인할 수 있어요. (데모: 이 브라우저에만 저장됩니다)</p>
         <dl className="mt-8 space-y-2 rounded-sm bg-white p-6 text-left text-sm border border-ink-900/10">
           {[
-            ["주문번호", done.orderNo],
+            ["주문번호", done.id],
             ["받는 분", `${done.name} · ${done.phone}`],
             ["배송지", done.address],
             ["배송 메시지", done.message],
-            ["상품", done.lines.join(", ")],
+            ["상품", done.lines.map((l) => `${l.emoji} ${l.name} ${l.kg}kg`).join(", ")],
             ["결제금액", won(done.total)],
           ].map(([k, v]) => (
             <div key={k} className="flex gap-4">
@@ -62,7 +63,10 @@ export default function CartPage() {
             </div>
           ))}
         </dl>
-        <Link href="/" className="btn mt-6 inline-block">쇼핑 계속하기</Link>
+        <div className="mt-6 flex justify-center gap-3">
+          <Link href="/orders" className="btn">내 주문 보기</Link>
+          <Link href="/" className="border border-ink-950 px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em]">쇼핑 계속하기</Link>
+        </div>
       </div>
     );
 

@@ -26,6 +26,7 @@ export default function Header() {
 
         <nav className="flex items-center justify-end gap-4 whitespace-nowrap sm:gap-5">
           {user?.role === "admin" && <Link href="/admin" className={item}>Admin</Link>}
+          {user?.role === "customer" && <Link href="/orders" className={item}>My Orders</Link>}
           {user ? (
             <button onClick={logout} className={item}>
               <span className="hidden sm:inline">{user.name} · </span>Logout

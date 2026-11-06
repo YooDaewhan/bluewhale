@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { MOCK_RESERVATIONS, type Reservation, type ReservationStatus } from "./basket-data";
+import { MOCK_ORDERS, type Order, type OrderStatus } from "./order-data";
 
 export type Product = {
   id: number;
@@ -84,6 +85,10 @@ type Store = {
   reservations: Reservation[];
   addReservation: (r: Omit<Reservation, "id" | "status">) => Reservation;
   setReservationStatus: (id: string, status: ReservationStatus) => void;
+  orders: Order[];
+  addOrder: (o: Omit<Order, "id" | "userId" | "orderedAt" | "status">) => Order;
+  shipOrder: (id: string, carrier: string, tracking: string) => void;
+  setOrderStatus: (id: string, status: OrderStatus) => void;
 };
 
 const Ctx = createContext<Store | null>(null);
@@ -93,12 +98,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [user, setUser, r2] = usePersisted<User | null>("bw-user", null);
   const [cart, setCart, r3] = usePersisted<CartItem[]>("bw-cart", []);
   const [reservations, setReservations, r4] = usePersisted<Reservation[]>("bw-reservations", MOCK_RESERVATIONS);
+  const [orders, setOrders, r5] = usePersisted<Order[]>("bw-orders", MOCK_ORDERS);
   // read the clock after mount, not during prerender; sv-SE gives local YYYY-MM-DD (UTC would be a day off in KST mornings)
   const [today, setToday] = useState("");
   useEffect(() => setToday(new Date().toLocaleDateString("sv-SE")), []);
 
   const store: Store = {
-    ready: r1 && r2 && r3 && r4 && today !== "",
+    ready: r1 && r2 && r3 && r4 && r5 && today !== "",
     today,
     products,
     setProducts,
@@ -127,6 +133,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return res;
     },
     setReservationStatus: (id, status) => setReservations((list) => list.map((x) => (x.id === id ? { ...x, status } : x))),
+    orders,
+    addOrder(data) {
+      const o: Order = { ...data, id: "BW" + Date.now().toString().slice(-8), userId: user?.id ?? "guest", orderedAt: today, status: "결제완료" };
+      setOrders((list) => [...list, o]);
+      return o;
+    },
+    shipOrder: (id, carrier, tracking) =>
+      setOrders((list) => list.map((o) => (o.id === id ? { ...o, carrier, tracking, shippedAt: today, status: "발송완료" } : o))),
+    setOrderStatus: (id, status) => setOrders((list) => list.map((o) => (o.id === id ? { ...o, status } : o))),
   };
 
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
