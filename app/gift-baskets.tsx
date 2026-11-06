@@ -24,7 +24,7 @@ export default function GiftBaskets() {
 
       <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
         {shown.map((b) => (
-          <Link key={b.id} href={`/basket#${b.id}`} className="group">
+          <Link key={b.id} href={`/gift/${b.id}`} className="group">
             <div className="relative aspect-[4/5] overflow-hidden bg-gold-300/30">
               {b.image ? (
                 <img src={b.image} alt={`${b.ko} 과일 바구니`} loading="lazy" className="h-full w-full object-cover transition duration-[1200ms] group-hover:scale-105" />
