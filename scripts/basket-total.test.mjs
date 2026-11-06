@@ -15,3 +15,15 @@ test("wrap and extras apply per basket", () => {
 test("empty order is free", () => {
   assert.equal(basketTotal([], "bojagi-ivory", ["flower"]), 0);
 });
+
+test("admin-edited basket prices are used when passed", () => {
+  const custom = [{ id: "B1", price: 50000 }];
+  assert.equal(basketTotal([{ size: "B1", qty: 2 }], "kraft", [], custom), 100000);
+});
+
+test("weight and cost follow composition", async () => {
+  const { basketWeight, basketCost } = await import("../app/basket-data.ts");
+  const b = { items: [{ productId: 1, kg: 1.5 }, { productId: 2, kg: 0.5 }] };
+  assert.equal(basketWeight(b), 2);
+  assert.equal(basketCost(b, (id) => (id === 1 ? 10000 : 7900)), 18950);
+});

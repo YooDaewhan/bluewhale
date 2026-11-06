@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GiftBaskets from "./gift-baskets";
 import HeroSlider from "./hero-slider";
 import Link from "next/link";
@@ -22,6 +22,14 @@ const PROMISES = [
 export default function Home() {
   const { products, ready, today } = useStore();
   const [filter, setFilter] = useState<SaleStatus | "all">("all");
+  const [shop, setShop] = useState<"basket" | "fruit">("basket");
+  // /#fruits (e.g. from product detail breadcrumb) opens the fruit tab
+  useEffect(() => {
+    const sync = () => location.hash === "#fruits" && setShop("fruit");
+    sync();
+    addEventListener("hashchange", sync);
+    return () => removeEventListener("hashchange", sync);
+  }, []);
   const order: SaleStatus[] = ["onsale", "upcoming", "ended"];
   const shown = ready
     ? [...products]
@@ -33,20 +41,32 @@ export default function Home() {
     <>
       <HeroSlider />
 
-      <section className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <p className="eyebrow">Since the Deep Blue</p>
-        <p className="mt-6 font-serif text-2xl leading-relaxed text-ink-900 sm:text-3xl">
-          고래가 대양을 건너듯, 우리는 가장 좋은 순간의 열대과일을
-          <em className="text-gold-600"> 천천히, 그러나 신선하게 </em>
-          당신의 식탁으로 옮깁니다.
-        </p>
-      </section>
+      <section id="products" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20">
+        <span id="fruits" className="block scroll-mt-24" aria-hidden />
+        {/* basket is the main product; fruits are the secondary tab */}
+        <div className="grid grid-cols-2 border-b border-ink-900/10" role="tablist">
+          {([["basket", "과일 바구니", "Gift Basket"], ["fruit", "과일", "Fresh Fruit"]] as const).map(([key, ko, en]) => (
+            <button
+              key={key}
+              role="tab"
+              aria-selected={shop === key}
+              onClick={() => setShop(key)}
+              className={`-mb-px border-b-2 pb-4 text-left transition sm:pb-5 ${shop === key ? "border-ink-950" : "border-transparent text-ink-900/35 hover:text-ink-950"}`}
+            >
+              <span className="block text-[10px] uppercase tracking-[0.3em] text-gold-600">{en}</span>
+              <span className="mt-1 block font-serif text-2xl sm:text-4xl">{ko}</span>
+            </button>
+          ))}
+        </div>
 
-      <section id="products" className="mx-auto max-w-6xl scroll-mt-24 px-4 pb-24">
-        <div className="flex flex-wrap items-end justify-between gap-6 border-b border-ink-900/10 pb-6">
+        {shop === "basket" ? (
+          <GiftBaskets />
+        ) : (
+        <>
+        <div className="mt-10 flex flex-wrap items-end justify-between gap-6 border-b border-ink-900/10 pb-6">
           <div>
             <p className="eyebrow">The Collection</p>
-            <h2 className="mt-2 font-serif text-4xl">이번 시즌 열대과일</h2>
+            <h2 className="mt-2 font-serif text-3xl">이번 시즌 열대과일</h2>
           </div>
           <div className="flex gap-5" role="tablist">
             {FILTERS.map((f) => (
@@ -69,9 +89,18 @@ export default function Home() {
           ))}
         </div>
         {ready && shown.length === 0 && <p className="py-20 text-center font-serif text-xl italic text-ink-600">해당하는 상품이 없습니다.</p>}
+        </>
+        )}
       </section>
 
-      <GiftBaskets />
+      <section className="mx-auto max-w-3xl px-4 py-20 text-center">
+        <p className="eyebrow">Since the Deep Blue</p>
+        <p className="mt-6 font-serif text-2xl leading-relaxed text-ink-900 sm:text-3xl">
+          고래가 대양을 건너듯, 우리는 가장 좋은 순간의 열대과일을
+          <em className="text-gold-600"> 천천히, 그러나 신선하게 </em>
+          당신의 식탁으로 옮깁니다.
+        </p>
+      </section>
 
       <section className="border-y border-ink-900/10 bg-white/50">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:grid-cols-3">

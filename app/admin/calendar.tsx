@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { BASKETS, EXTRAS, WRAPS, type Reservation, type ReservationStatus } from "../basket-data";
-import { useStore, won } from "../store";
+import { EXTRAS, WRAPS, type Reservation, type ReservationStatus } from "../basket-data";
+import { basketName, useStore, won } from "../store";
 import ExcelButton from "./excel-button";
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
@@ -16,11 +16,11 @@ const STATUS_CLS: Record<ReservationStatus, string> = {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const key = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
-const sizeKo = (id: string) => BASKETS.find((b) => b.id === id)!.ko;
 const basketCount = (r: Reservation) => r.items.reduce((s, l) => s + l.qty, 0);
 
 export default function ReservationCalendar() {
-  const { today, reservations, setReservationStatus } = useStore();
+  const { today, reservations, setReservationStatus, baskets } = useStore();
+  const sizeKo = (id: string) => basketName(baskets, id);
   const [ym, setYm] = useState(() => ({ y: Number(today.slice(0, 4)), m: Number(today.slice(5, 7)) - 1 }));
   const [selected, setSelected] = useState(today);
 
@@ -38,7 +38,7 @@ export default function ReservationCalendar() {
   const dayList = byDate.get(selected) ?? [];
   const dayActive = dayList.filter((r) => r.status !== "취소");
   // prep sheet: how many of each size to assemble that day
-  const prep = BASKETS.map((b) => ({ b, n: dayActive.reduce((s, r) => s + r.items.filter((l) => l.size === b.id).reduce((a, l) => a + l.qty, 0), 0) }));
+  const prep = baskets.map((b) => ({ b, n: dayActive.reduce((s, r) => s + r.items.filter((l) => l.size === b.id).reduce((a, l) => a + l.qty, 0), 0) }));
 
   const move = (d: number) => setYm(({ y, m }) => ({ y: m + d < 0 ? y - 1 : m + d > 11 ? y + 1 : y, m: (m + d + 12) % 12 }));
 
@@ -116,7 +116,7 @@ export default function ReservationCalendar() {
           <p className="eyebrow">Selected Day</p>
           <p className="mt-1 font-serif text-2xl">{selected.replaceAll("-", ".")}</p>
 
-          <div className="mt-4 grid grid-cols-4 border border-ink-900/10 text-center">
+          <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(64px,1fr))] border border-ink-900/10 text-center">
             {prep.map(({ b, n }) => (
               <div key={b.id} className="border-r border-ink-900/10 py-2 last:border-r-0">
                 <p className="text-[10px] text-ink-900/50">{b.ko}</p>

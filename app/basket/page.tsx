@@ -3,15 +3,16 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BASKETS, EXTRAS, MESSAGES, PICKUP_TIMES, WRAPS, basketTotal, type ExtraId, type Reservation, type SizeId, type WrapId } from "../basket-data";
-import { useStore, won } from "../store";
+import { EXTRAS, MESSAGES, PICKUP_TIMES, WRAPS, basketTotal, basketWeight, type ExtraId, type Reservation, type SizeId, type WrapId } from "../basket-data";
+import { compositionText, useStore, won } from "../store";
 import { Summary } from "./summary";
 
 const CUSTOM = "직접 입력";
 
 export default function BasketOrderPage() {
-  const { ready, today, user, reservations, addReservation } = useStore();
-  const [qty, setQty] = useState<Record<SizeId, number>>({ S: 0, M: 0, L: 0, XL: 0 });
+  const { ready, today, user, reservations, addReservation, baskets, products } = useStore();
+  const [qty, setQty] = useState<Record<SizeId, number>>({});
+  const shown = baskets.filter((b) => b.active);
   const [wrap, setWrap] = useState<WrapId>("bojagi-indigo");
   const [extras, setExtras] = useState<ExtraId[]>(["card"]);
   const [preset, setPreset] = useState(MESSAGES[0]);
@@ -23,16 +24,17 @@ export default function BasketOrderPage() {
 
   // /basket#M from the main page preselects one basket of that size
   useEffect(() => {
+    if (!ready) return; // wait for admin-edited baskets from storage
     const id = location.hash.slice(1) as SizeId;
-    if (BASKETS.some((b) => b.id === id)) {
-      setQty((q) => ({ ...q, [id]: Math.max(1, q[id]) }));
+    if (baskets.some((b) => b.id === id && b.active)) {
+      setQty((q) => ({ ...q, [id]: Math.max(1, (q[id] ?? 0)) }));
       document.getElementById("step-1")?.scrollIntoView();
     }
-  }, []);
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps -- run once when data is ready
 
-  const items = BASKETS.filter((b) => qty[b.id] > 0).map((b) => ({ size: b.id, qty: qty[b.id] }));
+  const items = shown.filter((b) => (qty[b.id] ?? 0) > 0).map((b) => ({ size: b.id, qty: (qty[b.id] ?? 0) }));
   const count = items.reduce((s, l) => s + l.qty, 0);
-  const total = basketTotal(items, wrap, extras);
+  const total = basketTotal(items, wrap, extras, baskets);
   const message = preset === CUSTOM ? customMsg.trim() : preset;
   const wrapInfo = WRAPS.find((w) => w.id === wrap)!;
   // slots already holding 3+ baskets on that date are shown as full (mock capacity)
@@ -95,9 +97,9 @@ export default function BasketOrderPage() {
         <div className="min-w-0 space-y-16">
           <Step id="step-1" no="01" title="사이즈 · 수량">
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {BASKETS.map((b) => (
-                <div key={b.id} className={`border bg-white/60 transition ${qty[b.id] ? "border-ink-950" : "border-ink-900/10"}`}>
-                  <button type="button" className="block w-full text-left" onClick={() => setQty((q) => ({ ...q, [b.id]: q[b.id] || 1 }))}>
+              {shown.map((b) => (
+                <div key={b.id} className={`border bg-white/60 transition ${(qty[b.id] ?? 0) ? "border-ink-950" : "border-ink-900/10"}`}>
+                  <button type="button" className="block w-full text-left" onClick={() => setQty((q) => ({ ...q, [b.id]: (q[b.id] ?? 0) || 1 }))}>
                     <div className="aspect-[4/5] overflow-hidden">
                       <img src={b.image} alt={`${b.ko} 바구니`} className="h-full w-full object-cover" />
                     </div>
@@ -105,16 +107,16 @@ export default function BasketOrderPage() {
                       <p className="font-serif text-xl">
                         {b.ko} <span className="text-[10px] uppercase tracking-[0.2em] text-ink-900/50">{b.en}</span>
                       </p>
-                      <p className="text-[11px] text-ink-900/50">{b.serves} · {b.weight}</p>
+                      <p className="text-[11px] text-ink-900/50">{b.serves} · 약 {basketWeight(b)}kg</p>
                       <p className="mt-1 text-sm">{won(b.price)}</p>
                       <p className="mt-2 text-xs leading-5 text-ink-600">{b.desc}</p>
-                      <p className="mt-2 text-[11px] leading-5 text-gold-600">{b.fruits}</p>
+                      <p className="mt-2 text-[11px] leading-5 text-gold-600">{compositionText(b, products)}</p>
                     </div>
                   </button>
                   <div className="flex items-center justify-between border-t border-ink-900/10 px-3 py-2">
-                    <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [b.id]: Math.max(0, q[b.id] - 1) }))} aria-label={`${b.ko} 빼기`}>−</button>
-                    <span className="text-sm">{qty[b.id]}개</span>
-                    <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [b.id]: Math.min(20, q[b.id] + 1) }))} aria-label={`${b.ko} 더하기`}>+</button>
+                    <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [b.id]: Math.max(0, (q[b.id] ?? 0) - 1) }))} aria-label={`${b.ko} 빼기`}>−</button>
+                    <span className="text-sm">{(qty[b.id] ?? 0)}개</span>
+                    <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [b.id]: Math.min(20, (q[b.id] ?? 0) + 1) }))} aria-label={`${b.ko} 더하기`}>+</button>
                   </div>
                 </div>
               ))}
@@ -226,7 +228,7 @@ export default function BasketOrderPage() {
             <ul className="mt-4 space-y-2 text-sm">
               {items.length === 0 && <li className="text-ink-900/40">선택한 바구니가 없습니다.</li>}
               {items.map((l) => {
-                const b = BASKETS.find((x) => x.id === l.size)!;
+                const b = baskets.find((x) => x.id === l.size)!;
                 return (
                   <li key={l.size} className="flex justify-between">
                     <span>{b.ko} 바구니 × {l.qty}</span>

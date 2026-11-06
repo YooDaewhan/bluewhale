@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { MOCK_RESERVATIONS, type Reservation, type ReservationStatus } from "./basket-data";
+import { INITIAL_BASKETS, MOCK_RESERVATIONS, type BasketSize, type Reservation, type ReservationStatus } from "./basket-data";
 import { MEMBERS } from "./member-data";
 import { MOCK_ORDERS, type Order, type OrderStatus } from "./order-data";
 
@@ -76,6 +76,8 @@ type Store = {
   today: string;
   products: Product[];
   setProducts: (fn: (p: Product[]) => Product[]) => void;
+  baskets: BasketSize[];
+  setBaskets: (fn: (b: BasketSize[]) => BasketSize[]) => void;
   user: User | null;
   login: (id: string, pw: string, role: Role) => User | null;
   kakaoLogin: () => User;
@@ -101,15 +103,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [cart, setCart, r3] = usePersisted<CartItem[]>("bw-cart", []);
   const [reservations, setReservations, r4] = usePersisted<Reservation[]>("bw-reservations", MOCK_RESERVATIONS);
   const [orders, setOrders, r5] = usePersisted<Order[]>("bw-orders", MOCK_ORDERS);
+  const [baskets, setBaskets, r6] = usePersisted<BasketSize[]>("bw-baskets", INITIAL_BASKETS);
   // read the clock after mount, not during prerender; sv-SE gives local YYYY-MM-DD (UTC would be a day off in KST mornings)
   const [today, setToday] = useState("");
   useEffect(() => setToday(new Date().toLocaleDateString("sv-SE")), []);
 
   const store: Store = {
-    ready: r1 && r2 && r3 && r4 && r5 && today !== "",
+    ready: r1 && r2 && r3 && r4 && r5 && r6 && today !== "",
     today,
     products,
     setProducts,
+    baskets,
+    setBaskets,
     user,
     login(id, pw, role) {
       const acc = ACCOUNTS.find((a) => a.id === id && a.pw === pw && a.role === role);
@@ -170,3 +175,10 @@ export function FruitImage({ p, className = "" }: { p: Pick<Product, "image" | "
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={p.image} alt={p.name} loading="lazy" onError={() => setBroken(true)} className={`object-cover ${className}`} />;
 }
+
+// "애플망고 1.5kg · 골드 파인애플 1kg" (+ note)
+export function compositionText(b: Pick<BasketSize, "items" | "note">, products: Product[]) {
+  const fruits = b.items.map((i) => `${products.find((p) => p.id === i.productId)?.name ?? "삭제된 과일"} ${i.kg}kg`).join(" · ");
+  return b.note ? `${fruits} + ${b.note}` : fruits;
+}
+export const basketName = (baskets: BasketSize[], id: string) => baskets.find((b) => b.id === id)?.ko ?? "삭제된 바구니";

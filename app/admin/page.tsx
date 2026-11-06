@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FruitImage, INITIAL_PRODUCTS, saleStatus, useStore, won, type Product } from "../store";
 import ReservationCalendar from "./calendar";
+import BasketsAdmin from "./baskets";
 import MembersAdmin from "./members";
 import ShippingAdmin from "./shipping";
 
@@ -16,6 +17,7 @@ export default function AdminPage() {
   const { ready, today, user, products, setProducts } = useStore();
   const [editing, setEditing] = useState<Product | Omit<Product, "id"> | null>(null);
   const [tab, setTab] = useState<"reservations" | "shipping" | "members" | "products">("reservations");
+  const [kind, setKind] = useState<"basket" | "fruit">("basket");
 
   if (!ready) return null;
   if (user?.role !== "admin")
@@ -60,9 +62,20 @@ export default function AdminPage() {
         <ReservationCalendar />
       ) : (
       <>
+      <div className="mb-8 inline-flex border border-ink-900/15 bg-white p-1 text-sm">
+        {([["basket", "과일 바구니"], ["fruit", "개별 과일"]] as const).map(([k, l]) => (
+          <button key={k} onClick={() => setKind(k)} className={`px-5 py-2 ${kind === k ? "bg-ink-950 text-ivory" : "text-ink-600 hover:text-ink-950"}`}>
+            {l}
+          </button>
+        ))}
+      </div>
+      {kind === "basket" ? (
+        <BasketsAdmin />
+      ) : (
+      <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-serif text-3xl">상품 관리</h1>
+          <h1 className="font-serif text-3xl">개별 과일 관리</h1>
           <p className="text-sm text-ink-900/50">목업 관리자 · 변경 내용은 이 브라우저에만 저장됩니다.</p>
         </div>
         <div className="flex gap-2">
@@ -121,6 +134,8 @@ export default function AdminPage() {
       </div>
 
       {editing && <ProductForm key={"id" in editing ? editing.id : "new"} initial={editing} onSave={save} onCancel={() => setEditing(null)} />}
+      </>
+      )}
       </>
       )}
     </div>

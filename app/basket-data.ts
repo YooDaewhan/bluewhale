@@ -2,25 +2,35 @@
 
 const u = (id: string) => `https://images.unsplash.com/photo-${id}?w=900&h=1100&fit=crop&auto=format&q=80`;
 
-export type SizeId = "S" | "M" | "L" | "XL";
+export type SizeId = string; // S/M/L/XL for the defaults, generated ids for admin-added baskets
+export type BasketFruit = { productId: number; kg: number }; // composition, references Product.id
 export type BasketSize = {
   id: SizeId;
-  ko: string;
+  ko: string; // display name (소/중/대/특대 or anything the admin types)
   en: string;
   price: number;
   serves: string;
-  weight: string;
-  fruits: string;
+  items: BasketFruit[];
+  note: string; // non-fruit extras, e.g. "생화 장식 + 원목 크레이트"
   desc: string;
   image: string;
+  active: boolean; // hidden from customers when false
 };
 
-export const BASKETS: BasketSize[] = [
-  { id: "S", ko: "소", en: "Petite", price: 39000, serves: "1–2인", weight: "약 2kg", fruits: "애플망고 2 · 키 라임 · 패션프루트 2", desc: "가볍게 마음을 전하기 좋은 작은 바구니. 집들이, 병문안, 작은 감사 인사에.", image: u("1629905707362-03cf1a9f6e2d") },
-  { id: "M", ko: "중", en: "Classic", price: 69000, serves: "3–4인", weight: "약 4kg", fruits: "애플망고 3 · 골드 파인애플 · 바나나 · 용과 · 리치", desc: "가장 많이 찾는 시그니처 구성. 색감이 고르게 어우러지도록 직접 담습니다.", image: u("1773823307113-2dcc3609aa79") },
-  { id: "L", ko: "대", en: "Grand", price: 119000, serves: "5–8인", weight: "약 7kg", fruits: "애플망고 4 · 파인애플 · 파파야 · 코코넛 · 용과 2 · 아보카도 · 리치", desc: "명절·기업 선물용 대형 바구니. 열대과일 8종 이상을 풍성하게 담았습니다.", image: u("1619566636858-adf3ef46400b") },
-  { id: "XL", ko: "특대", en: "Royal Hamper", price: 189000, serves: "10인 이상", weight: "약 11kg", fruits: "시즌 열대과일 10종 + 생화 장식 + 원목 크레이트", desc: "원목 크레이트에 생화와 함께 담는 최상위 구성. 행사, VIP 선물, 개업 축하에.", image: u("1773450970959-cef81e9b1053") },
+const f = (productId: number, kg: number): BasketFruit => ({ productId, kg });
+
+// product ids: 1 망고 2 파인애플 3 바나나 4 코코넛 5 용과 6 파파야 7 라임 8 아보카도 9 리치 10 패션프루트
+export const INITIAL_BASKETS: BasketSize[] = [
+  { id: "S", ko: "소", en: "Petite", price: 39000, serves: "1–2인", items: [f(1, 1), f(7, 0.5), f(10, 0.5)], note: "", desc: "가볍게 마음을 전하기 좋은 작은 바구니. 집들이, 병문안, 작은 감사 인사에.", image: u("1629905707362-03cf1a9f6e2d"), active: true },
+  { id: "M", ko: "중", en: "Classic", price: 69000, serves: "3–4인", items: [f(1, 1.5), f(2, 1), f(3, 0.5), f(5, 0.5), f(9, 0.5)], note: "", desc: "가장 많이 찾는 시그니처 구성. 색감이 고르게 어우러지도록 직접 담습니다.", image: u("1773823307113-2dcc3609aa79"), active: true },
+  { id: "L", ko: "대", en: "Grand", price: 119000, serves: "5–8인", items: [f(1, 2), f(2, 1), f(6, 1), f(4, 1), f(5, 1), f(8, 0.5), f(9, 0.5)], note: "", desc: "명절·기업 선물용 대형 바구니. 열대과일 7종을 풍성하게 담았습니다.", image: u("1619566636858-adf3ef46400b"), active: true },
+  { id: "XL", ko: "특대", en: "Royal Hamper", price: 189000, serves: "10인 이상", items: [f(1, 3), f(2, 2), f(3, 1), f(4, 1), f(5, 1), f(6, 1), f(7, 0.5), f(8, 0.5), f(9, 0.5), f(10, 0.5)], note: "생화 장식 + 원목 크레이트", desc: "원목 크레이트에 생화와 함께 담는 최상위 구성. 행사, VIP 선물, 개업 축하에.", image: u("1773450970959-cef81e9b1053"), active: true },
 ];
+
+export const basketWeight = (b: Pick<BasketSize, "items">) => b.items.reduce((s, i) => s + i.kg, 0);
+// fruit cost at current per-kg prices, used by admin to set the basket price
+export const basketCost = (b: Pick<BasketSize, "items">, priceOf: (productId: number) => number) =>
+  Math.round(b.items.reduce((s, i) => s + priceOf(i.productId) * i.kg, 0));
 
 export type WrapId = "kraft" | "bojagi-indigo" | "bojagi-blush" | "bojagi-ivory";
 export const WRAPS: { id: WrapId; name: string; price: number; color: string }[] = [
@@ -58,9 +68,9 @@ export type Reservation = {
 };
 
 // wrap and extras are applied to every basket in the order
-export function basketTotal(items: BasketLine[], wrap: WrapId, extras: ExtraId[]): number {
+export function basketTotal(items: BasketLine[], wrap: WrapId, extras: ExtraId[], baskets: BasketSize[] = INITIAL_BASKETS): number {
   const count = items.reduce((s, l) => s + l.qty, 0);
-  const base = items.reduce((s, l) => s + (BASKETS.find((b) => b.id === l.size)?.price ?? 0) * l.qty, 0);
+  const base = items.reduce((s, l) => s + (baskets.find((b) => b.id === l.size)?.price ?? 0) * l.qty, 0);
   const perBasket = (WRAPS.find((w) => w.id === wrap)?.price ?? 0) + extras.reduce((s, e) => s + (EXTRAS.find((x) => x.id === e)?.price ?? 0), 0);
   return base + perBasket * count;
 }

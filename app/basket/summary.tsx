@@ -1,13 +1,14 @@
-import { BASKETS, EXTRAS, WRAPS, type Reservation } from "../basket-data";
-import { won } from "../store";
+import { EXTRAS, WRAPS, type Reservation } from "../basket-data";
+import { basketName, useStore, won } from "../store";
 
 export function Summary({ r }: { r: Reservation }) {
+  const { baskets } = useStore();
   const w = WRAPS.find((x) => x.id === r.wrap)!;
   const rows: [string, string][] = [
     ["예약번호", r.id],
     ["픽업", `${r.pickupDate.replaceAll("-", ".")} ${r.pickupTime}`],
     ["예약자", `${r.name} · ${r.phone}`],
-    ["바구니", r.items.map((l) => `${BASKETS.find((b) => b.id === l.size)!.ko} × ${l.qty}`).join(", ")],
+    ["바구니", r.items.map((l) => `${basketName(baskets, l.size)} × ${l.qty}`).join(", ")],
     ["포장", [w.name, ...r.extras.map((e) => EXTRAS.find((x) => x.id === e)!.name)].join(" · ")],
     ["문구", `“${r.message}”`],
     ...(r.memo ? ([["요청사항", r.memo]] as [string, string][]) : []),

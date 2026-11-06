@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BASKETS } from "../basket-data";
 import { ORDER_STEPS, type Order } from "../order-data";
-import { useStore, won } from "../store";
+import { basketName, useStore, won } from "../store";
 
 export default function MyOrdersPage() {
-  const { ready, user, orders, reservations } = useStore();
+  const { ready, user, orders, reservations, baskets } = useStore();
 
   if (!ready) return <div className="min-h-[60vh]" />;
   if (!user)
@@ -32,7 +31,7 @@ export default function MyOrdersPage() {
         <h2 className="border-b border-ink-900/10 pb-3 text-[11px] uppercase tracking-[0.25em] text-ink-900/60">택배 주문 · {mine.length}</h2>
         {mine.length === 0 && (
           <p className="py-16 text-center text-sm text-ink-900/40">
-            아직 주문 내역이 없습니다. <Link href="/#products" className="underline">컬렉션 보러가기</Link>
+            아직 주문 내역이 없습니다. <Link href="/#fruits" className="underline">과일 보러가기</Link>
           </p>
         )}
         <ul className="mt-4 space-y-4">
@@ -48,7 +47,7 @@ export default function MyOrdersPage() {
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 border border-ink-900/10 bg-white p-5 text-sm">
                 <div>
                   <p className="font-serif text-xl">{r.pickupDate.replaceAll("-", ".")} {r.pickupTime} 픽업</p>
-                  <p className="text-ink-600">{r.items.map((l) => `${BASKETS.find((b) => b.id === l.size)!.ko} 바구니 × ${l.qty}`).join(", ")} · “{r.message}”</p>
+                  <p className="text-ink-600">{r.items.map((l) => `${basketName(baskets, l.size)} 바구니 × ${l.qty}`).join(", ")} · “{r.message}”</p>
                 </div>
                 <div className="text-right">
                   <span className="bg-gold-300/70 px-2 py-0.5 text-xs">{r.status}</span>

@@ -21,7 +21,7 @@ export default function ProductDetail({ id }: { id: number }) {
       <div className="px-4 py-32 text-center">
         <p className="eyebrow">Not Found</p>
         <p className="mt-4 font-serif text-3xl">찾으시는 상품이 없습니다.</p>
-        <Link href="/#products" className="btn mt-8 inline-block">컬렉션으로 돌아가기</Link>
+        <Link href="/#fruits" className="btn mt-8 inline-block">컬렉션으로 돌아가기</Link>
       </div>
     );
 
@@ -41,7 +41,7 @@ export default function ProductDetail({ id }: { id: number }) {
       <nav className="mb-8 text-[11px] uppercase tracking-[0.2em] text-ink-900/50" aria-label="breadcrumb">
         <Link href="/" className="hover:text-ink-950">Home</Link>
         <span className="mx-2">/</span>
-        <Link href="/#products" className="hover:text-ink-950">Collection</Link>
+        <Link href="/#fruits" className="hover:text-ink-950">Fruit</Link>
         <span className="mx-2">/</span>
         <span className="text-ink-950">{p.name}</span>
       </nav>
