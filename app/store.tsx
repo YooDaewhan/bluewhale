@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { MOCK_RESERVATIONS, type Reservation, type ReservationStatus } from "./basket-data";
+import { MEMBERS } from "./member-data";
 import { MOCK_ORDERS, type Order, type OrderStatus } from "./order-data";
 
 export type Product = {
@@ -34,7 +35,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   { id: 10, emoji: "🟣", image: u("1604495772376-9657f0035eb5"), name: "패션프루트", origin: "브라질", pricePerKg: 15900, description: "새콤달콤한 열대의 향. 반으로 갈라 요거트에 올리거나 에이드로 즐기세요.", saleStart: "2026-10-20", saleEnd: "2027-01-15" },
 ];
 
-// ponytail: mock accounts in client code, swap for real auth when there's a backend
+// ponytail: mock accounts in client code, swap for real auth when there is a backend. Customers can also use the mocked Kakao login below.
 export const ACCOUNTS: (User & { pw: string })[] = [
   { id: "admin", pw: "admin1234", name: "관리자", role: "admin" },
   { id: "customer", pw: "1234", name: "김고래", role: "customer" },
@@ -77,6 +78,7 @@ type Store = {
   setProducts: (fn: (p: Product[]) => Product[]) => void;
   user: User | null;
   login: (id: string, pw: string, role: Role) => User | null;
+  kakaoLogin: () => User;
   logout: () => void;
   cart: CartItem[];
   addToCart: (productId: number, kg: number) => void;
@@ -112,6 +114,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     login(id, pw, role) {
       const acc = ACCOUNTS.find((a) => a.id === id && a.pw === pw && a.role === role);
       const u = acc ? { id: acc.id, name: acc.name, role: acc.role } : null;
+      setUser(u);
+      return u;
+    },
+    // ponytail: mock Kakao OAuth — always signs in as the demo member; real flow redirects to kauth.kakao.com
+    kakaoLogin() {
+      const m = MEMBERS[0];
+      const u: User = { id: m.id, name: m.nickname, role: "customer" };
       setUser(u);
       return u;
     },

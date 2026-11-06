@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FruitImage, INITIAL_PRODUCTS, saleStatus, useStore, won, type Product } from "../store";
 import ReservationCalendar from "./calendar";
+import MembersAdmin from "./members";
 import ShippingAdmin from "./shipping";
 
 const EMPTY: Omit<Product, "id"> = { emoji: "🍍", image: "", name: "", origin: "", pricePerKg: 10000, description: "", saleStart: "", saleEnd: "" };
@@ -14,7 +15,7 @@ const STATUS_LABEL = { onsale: "판매중", upcoming: "판매예정", ended: "�
 export default function AdminPage() {
   const { ready, today, user, products, setProducts } = useStore();
   const [editing, setEditing] = useState<Product | Omit<Product, "id"> | null>(null);
-  const [tab, setTab] = useState<"reservations" | "shipping" | "products">("reservations");
+  const [tab, setTab] = useState<"reservations" | "shipping" | "members" | "products">("reservations");
 
   if (!ready) return null;
   if (user?.role !== "admin")
@@ -37,8 +38,8 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="mb-10 flex gap-6 border-b border-ink-900/10" role="tablist">
-        {([["reservations", "픽업 예약 캘린더"], ["shipping", "주문 · 발송"], ["products", "상품 관리"]] as const).map(([key, label]) => (
+      <div className="mb-10 flex gap-6 overflow-x-auto overflow-y-hidden whitespace-nowrap border-b border-ink-900/10" role="tablist">
+        {([["reservations", "픽업 예약 캘린더"], ["shipping", "주문 · 발송"], ["members", "회원 관리"], ["products", "상품 관리"]] as const).map(([key, label]) => (
           <button
             key={key}
             role="tab"
@@ -51,7 +52,9 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {tab === "shipping" ? (
+      {tab === "members" ? (
+        <MembersAdmin />
+      ) : tab === "shipping" ? (
         <ShippingAdmin />
       ) : tab === "reservations" ? (
         <ReservationCalendar />

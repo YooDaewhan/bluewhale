@@ -12,7 +12,7 @@ const DEMO: Record<Role, { id: string; pw: string; label: string }> = {
 };
 
 export default function LoginPage() {
-  const { login } = useStore();
+  const { login, kakaoLogin } = useStore();
   const router = useRouter();
   const [role, setRole] = useState<Role>("customer");
   const [id, setId] = useState("");
@@ -45,6 +45,23 @@ export default function LoginPage() {
           </button>
         ))}
       </div>
+
+      {role === "customer" && (
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => { kakaoLogin(); router.push("/"); }}
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] py-3.5 text-sm font-semibold text-black/85 transition hover:brightness-95"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+              <path fill="currentColor" d="M12 3C6.48 3 2 6.48 2 10.77c0 2.77 1.85 5.2 4.64 6.57l-.95 3.47c-.08.3.26.54.52.37l4.13-2.73c.54.06 1.09.09 1.66.09 5.52 0 10-3.48 10-7.77S17.52 3 12 3Z" />
+            </svg>
+            카카오로 시작하기
+          </button>
+          <p className="mt-2 text-center text-[11px] text-ink-900/40">데모: 누르면 카카오 회원 ‘김고래’로 로그인됩니다.</p>
+          <p className="my-5 flex items-center gap-3 text-[11px] text-ink-900/30 before:h-px before:flex-1 before:bg-ink-900/10 after:h-px after:flex-1 after:bg-ink-900/10">또는 아이디로 로그인</p>
+        </div>
+      )}
 
       <form onSubmit={submit} className="space-y-3 rounded-sm bg-white p-6 border border-ink-900/10">
         <input className="field" placeholder="아이디" value={id} onChange={(e) => setId(e.target.value)} autoComplete="username" />

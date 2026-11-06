@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BASKETS, EXTRAS, WRAPS, type Reservation, type ReservationStatus } from "../basket-data";
 import { useStore, won } from "../store";
+import ExcelButton from "./excel-button";
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
 const STATUSES: ReservationStatus[] = ["예약", "준비완료", "픽업완료", "취소"];
@@ -49,8 +50,9 @@ export default function ReservationCalendar() {
           <h1 className="mt-1 font-serif text-3xl">픽업 예약 캘린더</h1>
           <p className="text-sm text-ink-900/50">목업 데이터 + 이 브라우저에서 접수된 예약이 함께 표시됩니다.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="h-10 w-10 border border-ink-900/15 hover:bg-white" onClick={() => move(-1)} aria-label="이전 달">‹</button>
+        <div className="flex flex-wrap items-center gap-2">
+          <ExcelButton label="예약 엑셀" />
+          <button className="ml-2 h-10 w-10 border border-ink-900/15 hover:bg-white" onClick={() => move(-1)} aria-label="이전 달">‹</button>
           <span className="min-w-32 text-center font-serif text-2xl">{y}. {pad(m + 1)}</span>
           <button className="h-10 w-10 border border-ink-900/15 hover:bg-white" onClick={() => move(1)} aria-label="다음 달">›</button>
           <button

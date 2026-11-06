@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CARRIERS, ORDER_STEPS, type Order, type OrderStatus } from "../order-data";
 import { useStore, won } from "../store";
+import ExcelButton from "./excel-button";
 
 const STATUS_CLS: Record<OrderStatus, string> = {
   결제완료: "bg-gold-300/70 text-ink-950",
@@ -19,9 +20,14 @@ export default function ShippingAdmin() {
 
   return (
     <div>
-      <p className="eyebrow">Orders & Shipping</p>
-      <h1 className="mt-1 font-serif text-3xl">주문 · 발송 관리</h1>
-      <p className="text-sm text-ink-900/50">발송 버튼을 눌러 택배사와 송장번호를 입력하면 고객의 내 주문 화면에 바로 표시됩니다.</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="eyebrow">Orders & Shipping</p>
+          <h1 className="mt-1 font-serif text-3xl">주문 · 발송 관리</h1>
+          <p className="text-sm text-ink-900/50">발송 버튼을 눌러 택배사와 송장번호를 입력하면 고객의 내 주문 화면에 바로 표시됩니다.</p>
+        </div>
+        <ExcelButton label="주문 엑셀 다운로드" />
+      </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
         {(["결제완료", "발송완료", "배송완료", "all"] as const).map((s) => (
