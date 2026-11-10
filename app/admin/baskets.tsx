@@ -2,10 +2,10 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
-import { INITIAL_BASKETS, basketCost, basketWeight, type BasketSize } from "../basket-data";
+import { BASKET_CATEGORIES, INITIAL_BASKETS, basketCost, basketWeight, type BasketSize } from "../basket-data";
 import { compositionText, useStore, won, type Product } from "../store";
 
-const EMPTY: Omit<BasketSize, "id"> = { ko: "", en: "", price: 0, serves: "", items: [], note: "", desc: "", image: "", active: true };
+const EMPTY: Omit<BasketSize, "id"> = { ko: "", en: "", category: "바구니", fruitCount: "", price: 0, serves: "", items: [], note: "", desc: "", image: "", active: true };
 
 const margin = (price: number, cost: number) => (price > 0 ? Math.round(((price - cost) / price) * 100) : 0);
 
@@ -52,12 +52,13 @@ export default function BasketsAdmin() {
                   </p>
                   <span className={`shrink-0 px-2 py-0.5 text-[10px] ${b.active ? "bg-gold-300/70" : "bg-ink-900/10"}`}>{b.active ? "판매중" : "숨김"}</span>
                 </div>
-                <p className="mt-1 line-clamp-2 text-xs text-ink-600">{compositionText(b, products)}</p>
+                <p className="mt-1 text-xs text-ink-600">{b.category} · 제철과일 {b.fruitCount || "-"}</p>
+                {compositionText(b, products) && <p className="mt-0.5 line-clamp-2 text-xs text-ink-900/50">{compositionText(b, products)}</p>}
                 <div className="mt-2 flex flex-wrap gap-x-4 text-xs">
                   <span>판매가 <b className="font-semibold">{won(b.price)}</b></span>
-                  <span className="text-ink-900/50">원가 {won(cost)}</span>
-                  <span className={margin(b.price, cost) < 20 ? "text-coral-500" : "text-ink-900/50"}>마진 {margin(b.price, cost)}%</span>
-                  <span className="text-ink-900/50">{basketWeight(b)}kg · {b.serves}</span>
+                  {cost > 0 && <span className="text-ink-900/50">원가 {won(cost)}</span>}
+                  {cost > 0 && <span className={margin(b.price, cost) < 20 ? "text-coral-500" : "text-ink-900/50"}>마진 {margin(b.price, cost)}%</span>}
+                  {basketWeight(b) > 0 && <span className="text-ink-900/50">{basketWeight(b)}kg</span>}
                 </div>
                 <div className="mt-3 flex gap-3 text-xs">
                   <button className="text-ink-950 underline" onClick={() => setEditing(b)}>수정</button>
@@ -103,7 +104,6 @@ function BasketForm({
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (b.items.length === 0) return setError("구성 과일을 1개 이상 추가해주세요.");
     if (b.items.some((i) => !(i.kg > 0))) return setError("과일 kg은 0보다 커야 합니다.");
     if (!(b.price > 0)) return setError("판매가를 입력해주세요.");
     onSave(b);
@@ -114,21 +114,27 @@ function BasketForm({
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="mx-auto my-8 w-full max-w-2xl space-y-5 bg-white p-6 shadow-xl">
         <h2 className="font-serif text-2xl">{"id" in initial ? "바구니 수정" : "바구니 등록"}</h2>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Label text="이름 (예: 소, 중, 명절 스페셜)">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Label text="상품명 (예: 스몰핸들박스)">
             <input className="field" value={b.ko} onChange={(e) => set("ko", e.target.value)} required />
           </Label>
           <Label text="영문 표기">
             <input className="field" value={b.en} onChange={(e) => set("en", e.target.value)} placeholder="Classic" />
           </Label>
-          <Label text="추천 인원">
-            <input className="field" value={b.serves} onChange={(e) => set("serves", e.target.value)} placeholder="3–4인" />
+          <Label text="분류">
+            <select className="field" value={b.category} onChange={(e) => set("category", e.target.value)}>
+              {[...new Set([...BASKET_CATEGORIES, b.category])].map((c) => <option key={c}>{c}</option>)}
+            </select>
+          </Label>
+          <Label text="제철과일 가짓수">
+            <input className="field" value={b.fruitCount} onChange={(e) => set("fruitCount", e.target.value)} placeholder="예) 6-7가지" required />
           </Label>
         </div>
 
         {/* composition */}
         <div>
-          <p className="eyebrow mb-2">구성 과일</p>
+          <p className="eyebrow mb-1">대표 구성 과일 (선택)</p>
+          <p className="mb-2 text-[11px] text-ink-900/40">넣으면 상세 페이지에 과일·원산지 목록이 나오고 원가·마진이 계산됩니다. 비워두면 제철과일 가짓수만 표시됩니다.</p>
           <div className="space-y-2">
             {b.items.map((it, n) => {
               const p = products.find((x) => x.id === it.productId);
@@ -170,8 +176,8 @@ function BasketForm({
               + 과일 추가
             </button>
           )}
-          <Label text="과일 외 구성 (선택)">
-            <input className="field mt-1" value={b.note} onChange={(e) => set("note", e.target.value)} placeholder="예) 생화 장식 + 원목 크레이트" />
+          <Label text="특이사항 · 과일 외 구성 (선택)">
+            <input className="field mt-1" value={b.note} onChange={(e) => set("note", e.target.value)} placeholder="예) 겹보자기 + 노리개 + 부직포가방 포함" />
           </Label>
         </div>
 

@@ -47,7 +47,7 @@ export default function MyOrdersPage() {
               <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 border border-ink-900/10 bg-white p-5 text-sm">
                 <div>
                   <p className="font-serif text-xl">{r.pickupDate.replaceAll("-", ".")} {r.pickupTime} 픽업</p>
-                  <p className="text-ink-600">{r.items.map((l) => `${basketName(baskets, l.size)} 바구니 × ${l.qty}`).join(", ")} · “{r.message}”</p>
+                  <p className="text-ink-600">{r.items.map((l) => `${basketName(baskets, l.size)} × ${l.qty}`).join(", ")} · “{r.message}”</p>
                 </div>
                 <div className="text-right">
                   <span className="bg-gold-300/70 px-2 py-0.5 text-xs">{r.status}</span>

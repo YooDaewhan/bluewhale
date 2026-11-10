@@ -101,9 +101,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts, r1] = usePersisted("bw-products-v2", INITIAL_PRODUCTS);
   const [user, setUser, r2] = usePersisted<User | null>("bw-user", null);
   const [cart, setCart, r3] = usePersisted<CartItem[]>("bw-cart", []);
-  const [reservations, setReservations, r4] = usePersisted<Reservation[]>("bw-reservations", MOCK_RESERVATIONS);
+  const [reservations, setReservations, r4] = usePersisted<Reservation[]>("bw-reservations-v2", MOCK_RESERVATIONS);
   const [orders, setOrders, r5] = usePersisted<Order[]>("bw-orders", MOCK_ORDERS);
-  const [baskets, setBaskets, r6] = usePersisted<BasketSize[]>("bw-baskets", INITIAL_BASKETS);
+  const [baskets, setBaskets, r6] = usePersisted<BasketSize[]>("bw-baskets-v2", INITIAL_BASKETS);
   // read the clock after mount, not during prerender; sv-SE gives local YYYY-MM-DD (UTC would be a day off in KST mornings)
   const [today, setToday] = useState("");
   useEffect(() => setToday(new Date().toLocaleDateString("sv-SE")), []);
@@ -179,6 +179,6 @@ export function FruitImage({ p, className = "" }: { p: Pick<Product, "image" | "
 // "애플망고 1.5kg · 골드 파인애플 1kg" (+ note)
 export function compositionText(b: Pick<BasketSize, "items" | "note">, products: Product[]) {
   const fruits = b.items.map((i) => `${products.find((p) => p.id === i.productId)?.name ?? "삭제된 과일"} ${i.kg}kg`).join(" · ");
-  return b.note ? `${fruits} + ${b.note}` : fruits;
+  return [fruits, b.note].filter(Boolean).join(" + "); // "" when neither is set
 }
 export const basketName = (baskets: BasketSize[], id: string) => baskets.find((b) => b.id === id)?.ko ?? "삭제된 바구니";

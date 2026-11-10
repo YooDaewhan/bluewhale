@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EXTRAS, MESSAGES, PICKUP_TIMES, WRAPS, basketTotal, basketWeight, type ExtraId, type Reservation, type SizeId, type WrapId } from "../basket-data";
+import { EXTRAS, MESSAGES, PICKUP_TIMES, WRAPS, basketTotal, type ExtraId, type Reservation, type SizeId, type WrapId } from "../basket-data";
 import { compositionText, useStore, won } from "../store";
 import { Summary } from "./summary";
 
@@ -13,8 +13,8 @@ export default function BasketOrderPage() {
   const { ready, today, user, reservations, addReservation, baskets, products } = useStore();
   const [qty, setQty] = useState<Record<SizeId, number>>({});
   const shown = baskets.filter((b) => b.active);
-  const [wrap, setWrap] = useState<WrapId>("bojagi-indigo");
-  const [extras, setExtras] = useState<ExtraId[]>(["card"]);
+  const [wrap, setWrap] = useState<WrapId>("basic");
+  const [extras, setExtras] = useState<ExtraId[]>([]);
   const [preset, setPreset] = useState(MESSAGES[0]);
   const [customMsg, setCustomMsg] = useState("");
   const [date, setDate] = useState("");
@@ -107,10 +107,10 @@ export default function BasketOrderPage() {
                       <p className="font-serif text-xl">
                         {b.ko} <span className="text-[10px] uppercase tracking-[0.2em] text-ink-900/50">{b.en}</span>
                       </p>
-                      <p className="text-[11px] text-ink-900/50">{b.serves} · 약 {basketWeight(b)}kg</p>
+                      <p className="text-[11px] text-ink-900/50">{b.category} · 제철과일 {b.fruitCount}</p>
                       <p className="mt-1 text-sm">{won(b.price)}</p>
                       <p className="mt-2 text-xs leading-5 text-ink-600">{b.desc}</p>
-                      <p className="mt-2 text-[11px] leading-5 text-gold-600">{compositionText(b, products)}</p>
+                      {compositionText(b, products) && <p className="mt-2 text-[11px] leading-5 text-gold-600">{compositionText(b, products)}</p>}
                     </div>
                   </button>
                   <div className="flex items-center justify-between border-t border-ink-900/10 px-3 py-2">
@@ -123,8 +123,8 @@ export default function BasketOrderPage() {
             </div>
           </Step>
 
-          <Step id="step-2" no="02" title="포장 옵션" note="선택한 포장과 추가 옵션은 모든 바구니에 동일하게 적용됩니다.">
-            <p className="eyebrow mb-3">Wrapping · 보자기</p>
+          <Step id="step-2" no="02" title="포장 옵션" note="선택한 포장과 추가 옵션은 모든 바구니에 동일하게 적용됩니다. 이바지과일선물은 겹보자기·노리개가 기본 포함되어 있어요.">
+            <p className="eyebrow mb-3">Wrapping · 포장</p>
             <div className="grid gap-3 sm:grid-cols-2">
               {WRAPS.map((w) => (
                 <label key={w.id} className={`flex cursor-pointer items-center gap-4 border p-4 transition ${wrap === w.id ? "border-ink-950 bg-white" : "border-ink-900/10 bg-white/50 hover:border-ink-900/40"}`}>
@@ -135,7 +135,7 @@ export default function BasketOrderPage() {
                 </label>
               ))}
             </div>
-            <p className="eyebrow mb-3 mt-8">Add-ons</p>
+            <p className="eyebrow mb-3 mt-8">Add-ons · 추가 옵션</p>
             <div className="flex flex-wrap gap-2">
               {EXTRAS.map((x) => {
                 const on = extras.includes(x.id);
@@ -149,7 +149,7 @@ export default function BasketOrderPage() {
             </div>
           </Step>
 
-          <Step id="step-3" no="03" title="바구니에 들어갈 문구">
+          <Step id="step-3" no="03" title="리본 문구" note="리본 문구는 무료입니다.">
             <div className="flex flex-wrap gap-2">
               {[...MESSAGES, CUSTOM].map((m) => (
                 <button
@@ -173,8 +173,8 @@ export default function BasketOrderPage() {
                 <p className="text-[9px] uppercase tracking-[0.3em] text-gold-600">Bluewhale</p>
               </div>
               <p className="text-xs leading-5 text-ink-600">
-                바구니 손잡이에 걸리는 메시지 태그 미리보기입니다.
-                {extras.includes("card") && " 손글씨 메시지 카드에도 같은 문구를 적어 드립니다."}
+                바구니에 달리는 리본 문구 미리보기입니다.
+
               </p>
             </div>
           </Step>
@@ -218,7 +218,7 @@ export default function BasketOrderPage() {
                 <input name="memo" className="field" maxLength={60} placeholder="예) 차량 픽업, 영수증 동봉" />
               </Field>
             </div>
-            <p className="mt-4 text-xs text-ink-900/50">📍 픽업 장소: 블루웨일 성수 쇼룸 (서울 성동구 성수이로 00) · 마감된 시간은 선택할 수 없습니다.</p>
+            <p className="mt-4 text-xs text-ink-900/50">📍 픽업 장소: 블루웨일 성수 쇼룸 (서울 성동구 성수이로 00) · 마감된 시간은 선택할 수 없습니다. · 🛵 퀵 배송을 원하시면 요청사항에 적어주세요 (퀵 비용 별도).</p>
           </Step>
         </div>
 
@@ -231,7 +231,7 @@ export default function BasketOrderPage() {
                 const b = baskets.find((x) => x.id === l.size)!;
                 return (
                   <li key={l.size} className="flex justify-between">
-                    <span>{b.ko} 바구니 × {l.qty}</span>
+                    <span>{b.ko} × {l.qty}</span>
                     <span>{won(b.price * l.qty)}</span>
                   </li>
                 );

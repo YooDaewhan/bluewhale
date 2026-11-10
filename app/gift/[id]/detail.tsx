@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { EXTRAS, WRAPS, basketWeight } from "../../basket-data";
+import { EXTRAS, OPTION_NOTES, WRAPS } from "../../basket-data";
 import { FruitImage, useStore, won } from "../../store";
 
 export default function BasketDetail({ id }: { id: string }) {
@@ -45,15 +45,15 @@ export default function BasketDetail({ id }: { id: string }) {
 
         <div>
           <p className="eyebrow">{b.en || "Gift Basket"}</p>
-          <h1 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">{b.ko} 과일 바구니</h1>
+          <h1 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">{b.ko}</h1>
           <p className="mt-4 font-serif text-3xl">{won(b.price)}</p>
           {b.desc && <p className="mt-6 text-sm leading-7 text-ink-600">{b.desc}</p>}
 
           <dl className="mt-8 grid grid-cols-3 border-y border-ink-900/10 text-sm">
             {[
-              ["Serves", b.serves || "-"],
-              ["Weight", `약 ${basketWeight(b)}kg`],
-              ["Fruits", `${fruits.length}종`],
+              ["Category", b.category || "-"],
+              ["Seasonal Fruits", b.fruitCount || "-"],
+              ["Ribbon", "문구 무료"],
             ].map(([k, v], n) => (
               <div key={k} className={`py-4 ${n ? "border-l border-ink-900/10 pl-4" : "pr-4"}`}>
                 <dt className="eyebrow">{k}</dt>
@@ -64,6 +64,8 @@ export default function BasketDetail({ id }: { id: string }) {
 
           {/* composition: each fruit with origin, linked to its own page */}
           <p className="eyebrow mt-10">What&apos;s Inside</p>
+          <p className="mt-3 text-sm leading-7 text-ink-600">그날 입고된 가장 좋은 제철과일 <b className="font-semibold text-ink-950">{b.fruitCount}</b>로 직접 구성합니다.</p>
+          {(fruits.length > 0 || b.note) && (
           <ul className="mt-3 divide-y divide-ink-900/10 border-y border-ink-900/10">
             {fruits.map(({ productId, kg, p }) => (
               <li key={productId}>
@@ -88,6 +90,7 @@ export default function BasketDetail({ id }: { id: string }) {
               </li>
             )}
           </ul>
+          )}
           <p className="mt-2 text-[11px] text-ink-900/40">시즌과 작황에 따라 일부 과일은 같은 등급의 다른 과일로 대체될 수 있습니다.</p>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -99,7 +102,7 @@ export default function BasketDetail({ id }: { id: string }) {
 
           <div className="mt-10 divide-y divide-ink-900/10 border-y border-ink-900/10">
             {[
-              ["포장 옵션", `${WRAPS.map((w) => `${w.name}${w.price ? ` (+${won(w.price)})` : ""}`).join(", ")}. 추가로 ${EXTRAS.map((x) => x.name).join(", ")}를 선택할 수 있어요.`],
+              ["포장 옵션", `${WRAPS.map((w) => `${w.name}${w.price ? ` (+${won(w.price)})` : ""}`).join(", ")} 중 선택, ${EXTRAS.map((x) => `${x.name} 추가 +${won(x.price)}`).join(", ")}. ${OPTION_NOTES.join(" ")}`],
               ["픽업 안내", "주문서에서 픽업 날짜와 시간을 고르면 당일 아침 직접 담아 둡니다. 결제는 픽업 시 매장에서 진행됩니다."],
               ["보관 방법", "받으신 후 직사광선을 피해 서늘한 곳에 두고, 자른 과일은 냉장 보관 후 2일 안에 드세요."],
             ].map(([title, body], n) => (
