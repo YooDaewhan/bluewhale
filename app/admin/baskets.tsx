@@ -2,10 +2,10 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
-import { BASKET_CATEGORIES, INITIAL_BASKETS, basketCost, basketWeight, type BasketSize } from "../basket-data";
+import { BASKET_CATEGORIES, INITIAL_BASKETS, basketCost, basketMeta, basketWeight, type BasketSize } from "../basket-data";
 import { compositionText, useStore, won, type Product } from "../store";
 
-const EMPTY: Omit<BasketSize, "id"> = { ko: "", en: "", category: "바구니", fruitCount: "", price: 0, serves: "", items: [], note: "", desc: "", image: "", active: true };
+const EMPTY: Omit<BasketSize, "id"> = { ko: "", en: "", category: "바구니", fruitCount: "", price: 0, serves: "", items: [], note: "", addons: [], desc: "", image: "", active: true };
 
 const margin = (price: number, cost: number) => (price > 0 ? Math.round(((price - cost) / price) * 100) : 0);
 
@@ -52,7 +52,7 @@ export default function BasketsAdmin() {
                   </p>
                   <span className={`shrink-0 px-2 py-0.5 text-[10px] ${b.active ? "bg-gold-300/70" : "bg-ink-900/10"}`}>{b.active ? "판매중" : "숨김"}</span>
                 </div>
-                <p className="mt-1 text-xs text-ink-600">{b.category} · 제철과일 {b.fruitCount || "-"}</p>
+                <p className="mt-1 text-xs text-ink-600">{basketMeta(b)}</p>
                 {compositionText(b, products) && <p className="mt-0.5 line-clamp-2 text-xs text-ink-900/50">{compositionText(b, products)}</p>}
                 <div className="mt-2 flex flex-wrap gap-x-4 text-xs">
                   <span>판매가 <b className="font-semibold">{won(b.price)}</b></span>
@@ -127,7 +127,7 @@ function BasketForm({
             </select>
           </Label>
           <Label text="제철과일 가짓수">
-            <input className="field" value={b.fruitCount} onChange={(e) => set("fruitCount", e.target.value)} placeholder="예) 6-7가지" required />
+            <input className="field" value={b.fruitCount} onChange={(e) => set("fruitCount", e.target.value)} placeholder="예) 6-7가지 (없으면 비움)" />
           </Label>
         </div>
 
@@ -179,6 +179,25 @@ function BasketForm({
           <Label text="특이사항 · 과일 외 구성 (선택)">
             <input className="field mt-1" value={b.note} onChange={(e) => set("note", e.target.value)} placeholder="예) 겹보자기 + 노리개 + 부직포가방 포함" />
           </Label>
+        </div>
+
+        {/* product-specific paid options, e.g. 컷팅백 생화 추가 */}
+        <div>
+          <p className="eyebrow mb-1">상품 전용 옵션 (선택)</p>
+          <p className="mb-2 text-[11px] text-ink-900/40">주문서에서 이 상품에만 체크할 수 있는 추가 옵션입니다. 수량만큼 금액이 더해집니다.</p>
+          <div className="space-y-2">
+            {(b.addons ?? []).map((ad, n) => (
+              <div key={n} className="flex items-center gap-2">
+                <input className="field flex-1" value={ad.name} placeholder="옵션명 (예: 생화 추가)" onChange={(e) => set("addons", b.addons.map((x, i) => (i === n ? { ...x, name: e.target.value } : x)))} required />
+                <input className="field w-28 text-right" type="number" min={0} step={500} value={ad.price} onChange={(e) => set("addons", b.addons.map((x, i) => (i === n ? { ...x, price: Number(e.target.value) } : x)))} aria-label="옵션 가격" />
+                <span className="text-xs text-ink-900/50">원</span>
+                <button type="button" className="h-9 w-9 text-ink-900/40 hover:text-coral-500" onClick={() => set("addons", b.addons.filter((_, i) => i !== n))} aria-label="옵션 삭제">✕</button>
+              </div>
+            ))}
+          </div>
+          <button type="button" className="mt-2 border border-dashed border-ink-900/30 px-4 py-2 text-sm hover:border-ink-950" onClick={() => set("addons", [...(b.addons ?? []), { id: "o" + Date.now().toString(36), name: "", price: 3000 }])}>
+            + 옵션 추가
+          </button>
         </div>
 
         {/* pricing */}

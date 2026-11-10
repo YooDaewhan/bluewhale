@@ -1,18 +1,11 @@
 // Gift basket catalog, options and pricing. Pure data + functions (no React) so it can be tested with plain node.
 
-const u = (id: string) => `https://images.unsplash.com/photo-${id}?w=900&h=1100&fit=crop&auto=format&q=80`;
-// ponytail: 4 existing photos reused across the lineup until real product shots exist
-const IMG = {
-  small: u("1629905707362-03cf1a9f6e2d"),
-  medium: u("1773823307113-2dcc3609aa79"),
-  large: u("1619566636858-adf3ef46400b"),
-  hamper: u("1773450970959-cef81e9b1053"),
-  cut: "/slides/3.jpg",
-};
+const IMG = (name: string) => `/baskets/${name}.jpg`; // store photos in public/baskets
 
 export type SizeId = string; // basket id (slug for the defaults, generated for admin-added ones)
 export type BasketFruit = { productId: number; kg: number }; // optional sample composition, references Product.id
-export const BASKET_CATEGORIES = ["백", "핸들박스", "바구니", "특별선물"] as const;
+export const BASKET_CATEGORIES = ["백", "핸들박스", "바구니", "특별선물", "컵과일"] as const;
+export type BasketAddon = { id: string; name: string; price: number }; // product-specific option, e.g. 컷팅백 생화 추가
 export type BasketSize = {
   id: SizeId;
   ko: string; // display name
@@ -23,31 +16,38 @@ export type BasketSize = {
   serves: string;
   items: BasketFruit[];
   note: string; // 특이사항 / non-fruit extras
+  addons: BasketAddon[];
   desc: string;
   image: string;
   active: boolean; // hidden from customers when false
 };
 
-const b = (id: string, ko: string, en: string, category: string, price: number, fruitCount: string, image: string, desc: string, note = ""): BasketSize => ({
-  id, ko, en, category, price, fruitCount, serves: "", items: [], note, desc, image, active: true,
+const b = (id: string, ko: string, en: string, category: string, price: number, fruitCount: string, image: string, desc: string, note = "", addons: BasketAddon[] = []): BasketSize => ({
+  id, ko, en, category, price, fruitCount, serves: "", items: [], note, addons, desc, image, active: true,
 });
 
 // 블루웨일 더 후르츠 2026 가격표
 export const INITIAL_BASKETS: BasketSize[] = [
-  b("chilling-bag", "칠링백", "Chilling Bag", "백", 20000, "3-4가지", IMG.small, "보냉 가방에 담은 가벼운 제철과일. 소풍, 운동 후, 작은 답례에."),
-  b("halfmoon-bag", "반원핸들백", "Half-moon Bag", "백", 25000, "4-5가지", IMG.medium, "반원 손잡이 백에 담아 들고 가기 좋은 구성."),
-  b("handlebox-s", "스몰핸들박스", "Small Handle Box", "핸들박스", 45000, "6-7가지", IMG.small, "손잡이 박스에 정갈하게 담은 실속형 선물."),
-  b("handlebox-m", "미디움핸들박스", "Medium Handle Box", "핸들박스", 65000, "8-9가지", IMG.medium, "가장 많이 찾는 핸들박스. 감사 인사, 집들이에."),
-  b("handlebox-l", "라지핸들박스", "Large Handle Box", "핸들박스", 90000, "11-12가지", IMG.large, "넉넉한 구성의 대형 핸들박스. 가족 모임, 명절 선물에."),
-  b("handlebox-xl", "엑스라지핸들박스", "XL Handle Box", "핸들박스", 120000, "16가지", IMG.hamper, "16가지 제철과일을 모두 담은 최대 구성 핸들박스."),
-  b("ibaji", "이바지과일선물", "Ibaji Gift", "특별선물", 200000, "16가지 이상", IMG.hamper, "혼례 이바지 음식으로 준비하는 격식 있는 과일 선물.", "겹보자기 + 노리개 + 부직포가방 포함"),
-  b("basket-s", "스몰바구니", "Small Basket", "바구니", 70000, "8-9가지", IMG.small, "라탄 바구니에 담은 아담한 과일 바구니."),
-  b("basket-m", "미디움바구니", "Medium Basket", "바구니", 100000, "11-12가지", IMG.medium, "색감이 고르게 어우러지도록 직접 담는 시그니처 바구니."),
-  b("basket-l", "라지바구니", "Large Basket", "바구니", 130000, "16가지", IMG.large, "행사, 기업 선물용 대형 바구니."),
-  b("basket-xl", "엑스라지바구니", "XL Basket", "바구니", 160000, "16가지 이상", IMG.hamper, "가장 풍성한 최상위 바구니. 개업, VIP 선물에."),
-  b("birth", "출산바구니", "Baby Gift Basket", "특별선물", 65000, "6-7가지", IMG.medium, "산모에게 좋은 부드러운 제철과일로 구성한 출산 축하 바구니."),
-  b("cutting-bag", "과일컷팅백", "Fruit Cutting Bag", "백", 37000, "5가지", IMG.cut, "당도 높은 과일 5가지를 바로 먹기 좋게 손질해 담았습니다.", "당도 높은 과일 5가지 컷팅"),
+  b("chilling-bag", "칠링백", "Chilling Bag", "백", 20000, "3-4가지", IMG("chilling-bag"), "투명 칠링백에 제철과일과 생화를 담았습니다. 소풍, 운동 후, 작은 답례에."),
+  b("halfmoon-bag", "반원핸들백", "Half-moon Bag", "백", 25000, "4-5가지", IMG("halfmoon-bag"), "반원 손잡이 투명백에 담아 들고 가기 좋은 구성."),
+  b("handlebox-s", "스몰핸들박스", "Small Handle Box", "핸들박스", 45000, "6-7가지", IMG("handlebox-s"), "리본 손잡이 박스에 정갈하게 담은 실속형 선물."),
+  b("handlebox-m", "미디움핸들박스", "Medium Handle Box", "핸들박스", 65000, "8-9가지", IMG("handlebox-m"), "투명 뚜껑 핸들박스. 감사 인사, 집들이에 가장 많이 찾는 구성."),
+  b("handlebox-l", "라지핸들박스", "Large Handle Box", "핸들박스", 90000, "11-12가지", IMG("handlebox-l"), "넉넉한 구성의 대형 핸들박스. 가족 모임, 명절 선물에."),
+  b("handlebox-xl", "엑스라지핸들박스", "XL Handle Box", "핸들박스", 120000, "16가지", IMG("handlebox-xl"), "16가지 제철과일과 생화를 가득 채운 최대 구성 핸들박스."),
+  b("ibaji", "이바지과일선물", "Ibaji Gift", "특별선물", 200000, "16가지 이상", IMG("wrap-double-norigae"), "혼례 이바지 음식으로 준비하는 격식 있는 과일 선물.", "겹보자기 + 노리개 + 부직포가방 포함"),
+  b("basket-s", "스몰바구니", "Small Basket", "바구니", 70000, "8-9가지", IMG("basket-s"), "라탄 바구니에 담은 아담한 과일 바구니."),
+  b("basket-m", "미디움바구니", "Medium Basket", "바구니", 100000, "11-12가지", IMG("basket-m"), "멜론과 샤인머스캣을 중심으로 색감을 맞춰 담는 시그니처 바구니."),
+  b("basket-l", "라지바구니", "Large Basket", "바구니", 130000, "16가지", IMG("basket-l"), "생화로 장식한 대형 바구니. 행사, 기업 선물에."),
+  b("basket-xl", "엑스라지바구니", "XL Basket", "바구니", 160000, "16가지 이상", IMG("basket-xl"), "가장 풍성한 최상위 바구니. 개업, VIP 선물에."),
+  b("birth", "출산바구니", "Baby Gift Basket", "특별선물", 65000, "6-7가지", IMG("birth"), "산모에게 좋은 제철과일과 화사한 생화로 구성한 출산 축하 선물."),
+  b("cutting-bag", "과일컷팅백", "Fruit Cutting Bag", "백", 37000, "5가지", IMG("cutting-bag"), "당도 높은 과일 5가지를 바로 먹기 좋게 손질해 담았습니다.", "당도 높은 과일 5가지 컷팅", [{ id: "flower", name: "생화 추가", price: 3000 }]),
+  b("cup-s", "컵과일 S", "Fruit Cup S", "컵과일", 4000, "", IMG("cutting-bag"), "한 컵에 담은 손질 과일. 간식, 단체 행사용으로 좋아요."),
+  b("cup-m", "컵과일 M", "Fruit Cup M", "컵과일", 4700, "", IMG("cutting-bag"), "조금 더 넉넉한 한 컵 손질 과일."),
+  b("cup-l", "컵과일 L", "Fruit Cup L", "컵과일", 5500, "", IMG("cutting-bag"), "든든하게 즐기는 대용량 컵과일."),
 ];
+
+// "핸들박스 · 제철과일 8-9가지" (fruit count is optional, e.g. 컵과일)
+export const basketMeta = (b: Pick<BasketSize, "category" | "fruitCount">) => [b.category, b.fruitCount && `제철과일 ${b.fruitCount}`].filter(Boolean).join(" · ");
 
 export const basketWeight = (b: Pick<BasketSize, "items">) => b.items.reduce((s, i) => s + i.kg, 0);
 // fruit cost at current per-kg prices, used by admin to set the basket price
@@ -56,14 +56,15 @@ export const basketCost = (b: Pick<BasketSize, "items">, priceOf: (productId: nu
 
 // wrapping: pick one per order, applied to every basket
 export type WrapId = "basic" | "crystal" | "double";
-export const WRAPS: { id: WrapId; name: string; price: number; color: string }[] = [
+export const WRAPS: { id: WrapId; name: string; price: number; color: string; image?: string }[] = [
   { id: "basic", name: "기본 포장", price: 0, color: "#c8a97e" },
-  { id: "crystal", name: "크리스탈보자기", price: 5000, color: "#cfe3ef" },
-  { id: "double", name: "겹보자기", price: 10000, color: "#2f4170" },
+  { id: "crystal", name: "크리스탈보자기", price: 5000, color: "#f3e6dc", image: IMG("wrap-crystal") },
+  { id: "double", name: "겹보자기", price: 10000, color: "#b8d4c0", image: IMG("wrap-double") },
 ];
+export const RIBBON_SAMPLE = IMG("ribbon-crystal-round");
 
 export type ExtraId = "norigae";
-export const EXTRAS: { id: ExtraId; name: string; price: number }[] = [{ id: "norigae", name: "노리개", price: 10000 }];
+export const EXTRAS: { id: ExtraId; name: string; price: number; image?: string }[] = [{ id: "norigae", name: "노리개", price: 10000, image: IMG("wrap-double-norigae") }];
 
 // shown as notes on the order form
 export const OPTION_NOTES = ["리본 문구는 무료입니다.", "퀵 배송 비용은 별도입니다."];
@@ -71,7 +72,7 @@ export const OPTION_NOTES = ["리본 문구는 무료입니다.", "퀵 배송 �
 export const MESSAGES = ["늘 고맙습니다", "축하합니다", "건강하세요", "사랑합니다", "새해 복 많이 받으세요", "개업을 축하드립니다", "출산을 축하합니다"];
 export const PICKUP_TIMES = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 
-export type BasketLine = { size: SizeId; qty: number };
+export type BasketLine = { size: SizeId; qty: number; addons?: string[] }; // addons: BasketAddon ids of that product
 export type ReservationStatus = "예약" | "준비완료" | "픽업완료" | "취소";
 export type Reservation = {
   id: string;
@@ -91,7 +92,11 @@ export type Reservation = {
 // wrap and extras are applied to every basket in the order
 export function basketTotal(items: BasketLine[], wrap: WrapId, extras: ExtraId[], baskets: BasketSize[] = INITIAL_BASKETS): number {
   const count = items.reduce((s, l) => s + l.qty, 0);
-  const base = items.reduce((s, l) => s + (baskets.find((b) => b.id === l.size)?.price ?? 0) * l.qty, 0);
+  const base = items.reduce((s, l) => {
+    const b = baskets.find((x) => x.id === l.size);
+    const addon = (l.addons ?? []).reduce((a, id) => a + (b?.addons?.find((x) => x.id === id)?.price ?? 0), 0);
+    return s + ((b?.price ?? 0) + addon) * l.qty;
+  }, 0);
   const perBasket = (WRAPS.find((w) => w.id === wrap)?.price ?? 0) + extras.reduce((s, e) => s + (EXTRAS.find((x) => x.id === e)?.price ?? 0), 0);
   return base + perBasket * count;
 }

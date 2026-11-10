@@ -103,7 +103,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [cart, setCart, r3] = usePersisted<CartItem[]>("bw-cart", []);
   const [reservations, setReservations, r4] = usePersisted<Reservation[]>("bw-reservations-v2", MOCK_RESERVATIONS);
   const [orders, setOrders, r5] = usePersisted<Order[]>("bw-orders", MOCK_ORDERS);
-  const [baskets, setBaskets, r6] = usePersisted<BasketSize[]>("bw-baskets-v2", INITIAL_BASKETS);
+  const [baskets, setBaskets, r6] = usePersisted<BasketSize[]>("bw-baskets-v3", INITIAL_BASKETS);
   // read the clock after mount, not during prerender; sv-SE gives local YYYY-MM-DD (UTC would be a day off in KST mornings)
   const [today, setToday] = useState("");
   useEffect(() => setToday(new Date().toLocaleDateString("sv-SE")), []);
@@ -182,3 +182,9 @@ export function compositionText(b: Pick<BasketSize, "items" | "note">, products:
   return [fruits, b.note].filter(Boolean).join(" + "); // "" when neither is set
 }
 export const basketName = (baskets: BasketSize[], id: string) => baskets.find((b) => b.id === id)?.ko ?? "삭제된 바구니";
+// "과일컷팅백 × 2 (생화 추가)"
+export function lineText(baskets: BasketSize[], l: { size: string; qty: number; addons?: string[] }) {
+  const b = baskets.find((x) => x.id === l.size);
+  const extra = (l.addons ?? []).map((id) => b?.addons?.find((a) => a.id === id)?.name).filter(Boolean);
+  return `${b?.ko ?? "삭제된 바구니"} × ${l.qty}${extra.length ? ` (${extra.join(", ")})` : ""}`;
+}

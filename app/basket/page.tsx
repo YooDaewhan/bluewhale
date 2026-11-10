@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EXTRAS, MESSAGES, PICKUP_TIMES, WRAPS, basketTotal, type ExtraId, type Reservation, type SizeId, type WrapId } from "../basket-data";
+import { EXTRAS, MESSAGES, PICKUP_TIMES, RIBBON_SAMPLE, WRAPS, basketMeta, basketTotal, type ExtraId, type Reservation, type SizeId, type WrapId } from "../basket-data";
 import { useStore, won } from "../store";
 import { Summary } from "./summary";
 
@@ -22,6 +22,7 @@ export default function BasketOrderPage() {
   const [error, setError] = useState("");
   const [done, setDone] = useState<Reservation | null>(null);
   const [compact, setCompact] = useState(false);
+  const [addons, setAddons] = useState<Record<SizeId, string[]>>({}); // product-specific options per line
 
   // /basket#M from the main page preselects one basket of that size
   useEffect(() => {
@@ -33,8 +34,27 @@ export default function BasketOrderPage() {
     }
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps -- run once when data is ready
 
-  const items = shown.filter((b) => (qty[b.id] ?? 0) > 0).map((b) => ({ size: b.id, qty: (qty[b.id] ?? 0) }));
+  const items = shown.filter((b) => (qty[b.id] ?? 0) > 0).map((b) => ({ size: b.id, qty: qty[b.id] ?? 0, addons: (addons[b.id] ?? []).filter((id) => b.addons?.some((a) => a.id === id)) }));
   const compactMode = compact && items.length > 0; // falls back to the full list if everything was removed
+  const addonToggles = (b: (typeof shown)[number]) =>
+    b.addons?.length ? (
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {b.addons.map((a) => {
+          const on = (addons[b.id] ?? []).includes(a.id);
+          return (
+            <label key={a.id} className={`cursor-pointer border px-2.5 py-1 text-[11px] transition ${on ? "border-ink-950 bg-ink-950 text-ivory" : "border-ink-900/20 hover:border-ink-950"}`}>
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={on}
+                onChange={() => setAddons((s) => ({ ...s, [b.id]: on ? (s[b.id] ?? []).filter((x) => x !== a.id) : [...(s[b.id] ?? []), a.id] }))}
+              />
+              {a.name} +{won(a.price)}
+            </label>
+          );
+        })}
+      </div>
+    ) : null;
   const stepper = (id: SizeId, label: string) => (
     <div className="flex items-center justify-between gap-1">
       <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [id]: Math.max(0, (q[id] ?? 0) - 1) }))} aria-label={`${label} 빼기`}>−</button>
@@ -115,10 +135,13 @@ export default function BasketOrderPage() {
                       <img src={b.image} alt="" className="h-20 w-16 shrink-0 object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="font-serif text-xl">{b.ko}</p>
-                        <p className="text-[11px] text-ink-900/50">{b.category} · 제철과일 {b.fruitCount}</p>
+                        <p className="text-[11px] text-ink-900/50">{basketMeta(b)}</p>
                         <p className="mt-1 text-sm">{won(b.price)}</p>
                       </div>
-                      {stepper(b.id, b.ko)}
+                      <div className="text-right">
+                        {stepper(b.id, b.ko)}
+                        {addonToggles(b)}
+                      </div>
                     </div>
                   );
                 })}
@@ -136,11 +159,14 @@ export default function BasketOrderPage() {
                       </div>
                       <div className="p-3">
                         <p className="font-serif text-lg">{b.ko}</p>
-                        <p className="text-[11px] text-ink-900/50">{b.category} · 제철과일 {b.fruitCount}</p>
+                        <p className="text-[11px] text-ink-900/50">{basketMeta(b)}</p>
                         <p className="mt-1 text-sm">{won(b.price)}</p>
                       </div>
                     </button>
-                    <div className="border-t border-ink-900/10 px-3 py-2">{stepper(b.id, b.ko)}</div>
+                    <div className="border-t border-ink-900/10 px-3 py-2">
+                      {stepper(b.id, b.ko)}
+                      {(qty[b.id] ?? 0) > 0 && addonToggles(b)}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -153,7 +179,11 @@ export default function BasketOrderPage() {
               {WRAPS.map((w) => (
                 <label key={w.id} className={`flex cursor-pointer items-center gap-4 border p-4 transition ${wrap === w.id ? "border-ink-950 bg-white" : "border-ink-900/10 bg-white/50 hover:border-ink-900/40"}`}>
                   <input type="radio" name="wrap" className="sr-only" checked={wrap === w.id} onChange={() => setWrap(w.id)} />
-                  <span className="h-10 w-10 shrink-0 rounded-full border border-ink-900/10" style={{ background: `radial-gradient(circle at 30% 30%, #ffffff55, transparent 60%), ${w.color}` }} />
+                  {w.image ? (
+                    <img src={w.image} alt="" className="h-16 w-14 shrink-0 object-cover" />
+                  ) : (
+                    <span className="grid h-16 w-14 shrink-0 place-items-center border border-ink-900/10 text-[10px] text-ink-900/40" style={{ background: w.color + "33" }}>기본</span>
+                  )}
                   <span className="flex-1 text-sm">{w.name}</span>
                   <span className="text-xs text-ink-600">{w.price ? `+${won(w.price)}` : "무료"}</span>
                 </label>
@@ -164,7 +194,8 @@ export default function BasketOrderPage() {
               {EXTRAS.map((x) => {
                 const on = extras.includes(x.id);
                 return (
-                  <label key={x.id} className={`cursor-pointer border px-4 py-2.5 text-sm transition ${on ? "border-ink-950 bg-ink-950 text-ivory" : "border-ink-900/20 hover:border-ink-950"}`}>
+                  <label key={x.id} className={`flex cursor-pointer items-center gap-3 border p-2 pr-4 text-sm transition ${on ? "border-ink-950 bg-ink-950 text-ivory" : "border-ink-900/20 bg-white/50 hover:border-ink-950"}`}>
+                    {x.image && <img src={x.image} alt="" className="h-12 w-10 object-cover" />}
                     <input type="checkbox" className="sr-only" checked={on} onChange={() => setExtras((s) => (on ? s.filter((e) => e !== x.id) : [...s, x.id]))} />
                     {x.name} <span className="opacity-60">+{won(x.price)}</span>
                   </label>
@@ -191,7 +222,8 @@ export default function BasketOrderPage() {
               <input className="field mt-3" maxLength={30} placeholder="30자 이내로 입력해주세요" value={customMsg} onChange={(e) => setCustomMsg(e.target.value)} />
             )}
             {/* live preview of the tag that goes on the basket */}
-            <div className="mt-6 flex items-center gap-6 border border-dashed border-ink-900/20 bg-white/60 p-6">
+            <div className="mt-6 flex flex-wrap items-center gap-6 border border-dashed border-ink-900/20 bg-white/60 p-6">
+              <img src={RIBBON_SAMPLE} alt="리본 문구 예시" className="h-36 w-28 object-cover" />
               <div className="grid h-28 w-44 shrink-0 place-items-center border border-gold-400/60 bg-ivory px-3 text-center shadow-[0_8px_24px_-12px_rgba(0,0,0,0.25)]" style={{ borderTop: `6px solid ${wrapInfo.color}` }}>
                 <p className="font-serif text-lg leading-snug">{message || "…"}</p>
                 <p className="text-[9px] uppercase tracking-[0.3em] text-gold-600">Bluewhale</p>
@@ -255,8 +287,11 @@ export default function BasketOrderPage() {
                 const b = baskets.find((x) => x.id === l.size)!;
                 return (
                   <li key={l.size} className="flex justify-between">
-                    <span>{b.ko} × {l.qty}</span>
-                    <span>{won(b.price * l.qty)}</span>
+                    <span>
+                      {b.ko} × {l.qty}
+                      {(l.addons ?? []).map((id) => <span key={id} className="block text-xs text-ink-600">+ {b.addons.find((a) => a.id === id)?.name} × {l.qty}</span>)}
+                    </span>
+                    <span>{won((b.price + (l.addons ?? []).reduce((s, id) => s + (b.addons.find((a) => a.id === id)?.price ?? 0), 0)) * l.qty)}</span>
                   </li>
                 );
               })}

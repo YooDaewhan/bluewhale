@@ -47,12 +47,15 @@ export default function BasketDetail({ id }: { id: string }) {
           <p className="eyebrow">{b.en || "Gift Basket"}</p>
           <h1 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">{b.ko}</h1>
           <p className="mt-4 font-serif text-3xl">{won(b.price)}</p>
+          {b.addons?.length > 0 && (
+            <p className="mt-2 text-sm text-gold-600">선택 옵션: {b.addons.map((a) => `${a.name} +${won(a.price)}`).join(", ")}</p>
+          )}
           {b.desc && <p className="mt-6 text-sm leading-7 text-ink-600">{b.desc}</p>}
 
           <dl className="mt-8 grid grid-cols-3 border-y border-ink-900/10 text-sm">
             {[
               ["Category", b.category || "-"],
-              ["Seasonal Fruits", b.fruitCount || "-"],
+              ["Seasonal Fruits", b.fruitCount || (b.category === "컵과일" ? "손질 과일" : "-")],
               ["Ribbon", "문구 무료"],
             ].map(([k, v], n) => (
               <div key={k} className={`py-4 ${n ? "border-l border-ink-900/10 pl-4" : "pr-4"}`}>
@@ -64,7 +67,7 @@ export default function BasketDetail({ id }: { id: string }) {
 
           {/* composition: each fruit with origin, linked to its own page */}
           <p className="eyebrow mt-10">What&apos;s Inside</p>
-          <p className="mt-3 text-sm leading-7 text-ink-600">그날 입고된 가장 좋은 제철과일 <b className="font-semibold text-ink-950">{b.fruitCount}</b>로 직접 구성합니다.</p>
+          <p className="mt-3 text-sm leading-7 text-ink-600">{b.fruitCount ? <>그날 입고된 가장 좋은 제철과일 <b className="font-semibold text-ink-950">{b.fruitCount}</b>로 직접 구성합니다.</> : "그날 입고된 가장 좋은 제철과일로 직접 손질해 담습니다."}</p>
           {(fruits.length > 0 || b.note) && (
           <ul className="mt-3 divide-y divide-ink-900/10 border-y border-ink-900/10">
             {fruits.map(({ productId, kg, p }) => (

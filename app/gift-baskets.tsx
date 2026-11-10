@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useState } from "react";
-import { BASKET_CATEGORIES } from "./basket-data";
+import { BASKET_CATEGORIES, basketMeta } from "./basket-data";
 import { compositionText, useStore, won } from "./store";
 
 export default function GiftBaskets() {
@@ -52,7 +52,7 @@ export default function GiftBaskets() {
               <span className="absolute left-3 top-3 bg-ivory/90 px-2 py-1 font-serif text-sm">{b.ko}</span>
             </div>
             <p className="mt-4 text-[10px] uppercase tracking-[0.25em] text-gold-600">
-              {b.category} · 제철과일 {b.fruitCount}
+              {basketMeta(b)}
             </p>
             <p className="mt-1 font-serif text-2xl">{won(b.price)}</p>
             {compositionText(b, products) && <p className="mt-2 line-clamp-2 text-xs leading-5 text-ink-600">{compositionText(b, products)}</p>}

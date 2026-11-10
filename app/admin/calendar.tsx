@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { EXTRAS, WRAPS, type Reservation, type ReservationStatus } from "../basket-data";
-import { basketName, useStore, won } from "../store";
+import { basketName, lineText, useStore, won } from "../store";
 import ExcelButton from "./excel-button";
 
 const WEEK = ["일", "월", "화", "수", "목", "금", "토"];
@@ -142,7 +142,7 @@ export default function ReservationCalendar() {
                   </select>
                 </div>
                 <p className="mt-1 font-medium">{r.name} <span className="font-normal text-ink-900/50">· {r.phone}</span></p>
-                <p className="mt-1 text-ink-600">{r.items.map((l) => `${sizeKo(l.size)} × ${l.qty}`).join(", ")}</p>
+                <p className="mt-1 text-ink-600">{r.items.map((l) => lineText(baskets, l)).join(", ")}</p>
                 <p className="text-xs text-ink-600">
                   {WRAPS.find((w) => w.id === r.wrap)!.name}
                   {r.extras.length > 0 && ` · ${r.extras.map((e) => EXTRAS.find((x) => x.id === e)!.name).join(" · ")}`}

@@ -29,3 +29,8 @@ test("weight and cost follow composition", () => {
   assert.equal(basketWeight(b), 2);
   assert.equal(basketCost(b, (id) => (id === 1 ? 10000 : 7900)), 18950);
 });
+
+test("product addon (컷팅백 생화) is charged per unit of that line only", () => {
+  // 2×컷팅백(37000 + 생화 3000) + 1×칠링백(20000) = 100000, no wrap
+  assert.equal(basketTotal([{ size: "cutting-bag", qty: 2, addons: ["flower"] }, { size: "chilling-bag", qty: 1, addons: ["flower"] }], "basic", []), 100000);
+});
