@@ -4,13 +4,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EXTRAS, MESSAGES, PICKUP_TIMES, WRAPS, basketTotal, type ExtraId, type Reservation, type SizeId, type WrapId } from "../basket-data";
-import { compositionText, useStore, won } from "../store";
+import { useStore, won } from "../store";
 import { Summary } from "./summary";
 
 const CUSTOM = "직접 입력";
 
 export default function BasketOrderPage() {
-  const { ready, today, user, reservations, addReservation, baskets, products } = useStore();
+  const { ready, today, user, reservations, addReservation, baskets } = useStore();
   const [qty, setQty] = useState<Record<SizeId, number>>({});
   const shown = baskets.filter((b) => b.active);
   const [wrap, setWrap] = useState<WrapId>("basic");
@@ -21,6 +21,7 @@ export default function BasketOrderPage() {
   const [time, setTime] = useState("");
   const [error, setError] = useState("");
   const [done, setDone] = useState<Reservation | null>(null);
+  const [compact, setCompact] = useState(false);
 
   // /basket#M from the main page preselects one basket of that size
   useEffect(() => {
@@ -28,11 +29,19 @@ export default function BasketOrderPage() {
     const id = location.hash.slice(1) as SizeId;
     if (baskets.some((b) => b.id === id && b.active)) {
       setQty((q) => ({ ...q, [id]: Math.max(1, (q[id] ?? 0)) }));
-      document.getElementById("step-1")?.scrollIntoView();
+      setCompact(true);
     }
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps -- run once when data is ready
 
   const items = shown.filter((b) => (qty[b.id] ?? 0) > 0).map((b) => ({ size: b.id, qty: (qty[b.id] ?? 0) }));
+  const compactMode = compact && items.length > 0; // falls back to the full list if everything was removed
+  const stepper = (id: SizeId, label: string) => (
+    <div className="flex items-center justify-between gap-1">
+      <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [id]: Math.max(0, (q[id] ?? 0) - 1) }))} aria-label={`${label} 빼기`}>−</button>
+      <span className="w-10 text-center text-sm">{qty[id] ?? 0}개</span>
+      <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [id]: Math.min(20, (q[id] ?? 0) + 1) }))} aria-label={`${label} 더하기`}>+</button>
+    </div>
+  );
   const count = items.reduce((s, l) => s + l.qty, 0);
   const total = basketTotal(items, wrap, extras, baskets);
   const message = preset === CUSTOM ? customMsg.trim() : preset;
@@ -91,36 +100,51 @@ export default function BasketOrderPage() {
     <div className="mx-auto max-w-6xl px-4 py-12">
       <p className="eyebrow">Gift Basket Order</p>
       <h1 className="mt-2 font-serif text-4xl sm:text-5xl">과일 바구니 주문서</h1>
-      <p className="mt-3 text-sm text-ink-600">한 장의 주문서로 사이즈, 포장, 문구, 픽업 시간까지 한 번에 예약하세요.</p>
+      <p className="mt-3 text-sm text-ink-600">한 장의 주문서로 상품, 포장, 리본 문구, 픽업 시간까지 한 번에 예약하세요.</p>
 
       <form onSubmit={submit} className="mt-12 grid gap-12 lg:grid-cols-[1fr_360px]">
         <div className="min-w-0 space-y-16">
-          <Step id="step-1" no="01" title="사이즈 · 수량">
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              {shown.map((b) => (
-                <div key={b.id} className={`border bg-white/60 transition ${(qty[b.id] ?? 0) ? "border-ink-950" : "border-ink-900/10"}`}>
-                  <button type="button" className="block w-full text-left" onClick={() => setQty((q) => ({ ...q, [b.id]: (q[b.id] ?? 0) || 1 }))}>
-                    <div className="aspect-[4/5] overflow-hidden">
-                      <img src={b.image} alt={`${b.ko} 바구니`} className="h-full w-full object-cover" />
+          <Step id="step-1" no="01" title={compactMode ? "선택한 상품" : "상품 · 수량"}>
+            {compactMode ? (
+              // came from a product page: show only what was picked, full list on demand
+              <div className="space-y-3">
+                {items.map((l) => {
+                  const b = shown.find((x) => x.id === l.size)!;
+                  return (
+                    <div key={b.id} className="flex items-center gap-4 border border-ink-950 bg-white p-3">
+                      <img src={b.image} alt="" className="h-20 w-16 shrink-0 object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-serif text-xl">{b.ko}</p>
+                        <p className="text-[11px] text-ink-900/50">{b.category} · 제철과일 {b.fruitCount}</p>
+                        <p className="mt-1 text-sm">{won(b.price)}</p>
+                      </div>
+                      {stepper(b.id, b.ko)}
                     </div>
-                    <div className="p-3">
-                      <p className="font-serif text-xl">
-                        {b.ko} <span className="text-[10px] uppercase tracking-[0.2em] text-ink-900/50">{b.en}</span>
-                      </p>
-                      <p className="text-[11px] text-ink-900/50">{b.category} · 제철과일 {b.fruitCount}</p>
-                      <p className="mt-1 text-sm">{won(b.price)}</p>
-                      <p className="mt-2 text-xs leading-5 text-ink-600">{b.desc}</p>
-                      {compositionText(b, products) && <p className="mt-2 text-[11px] leading-5 text-gold-600">{compositionText(b, products)}</p>}
-                    </div>
-                  </button>
-                  <div className="flex items-center justify-between border-t border-ink-900/10 px-3 py-2">
-                    <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [b.id]: Math.max(0, (q[b.id] ?? 0) - 1) }))} aria-label={`${b.ko} 빼기`}>−</button>
-                    <span className="text-sm">{(qty[b.id] ?? 0)}개</span>
-                    <button type="button" className="h-8 w-8 hover:bg-ink-900/5" onClick={() => setQty((q) => ({ ...q, [b.id]: Math.min(20, (q[b.id] ?? 0) + 1) }))} aria-label={`${b.ko} 더하기`}>+</button>
+                  );
+                })}
+                <button type="button" onClick={() => setCompact(false)} className="w-full border border-dashed border-ink-900/30 py-3 text-sm text-ink-600 hover:border-ink-950 hover:text-ink-950">
+                  + 다른 상품도 함께 주문하기
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {shown.map((b) => (
+                  <div key={b.id} className={`border bg-white/60 transition ${(qty[b.id] ?? 0) ? "border-ink-950" : "border-ink-900/10"}`}>
+                    <button type="button" className="block w-full text-left" onClick={() => setQty((q) => ({ ...q, [b.id]: (q[b.id] ?? 0) || 1 }))}>
+                      <div className="aspect-[4/3] overflow-hidden">
+                        <img src={b.image} alt={`${b.ko}`} className="h-full w-full object-cover" />
+                      </div>
+                      <div className="p-3">
+                        <p className="font-serif text-lg">{b.ko}</p>
+                        <p className="text-[11px] text-ink-900/50">{b.category} · 제철과일 {b.fruitCount}</p>
+                        <p className="mt-1 text-sm">{won(b.price)}</p>
+                      </div>
+                    </button>
+                    <div className="border-t border-ink-900/10 px-3 py-2">{stepper(b.id, b.ko)}</div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </Step>
 
           <Step id="step-2" no="02" title="포장 옵션" note="선택한 포장과 추가 옵션은 모든 바구니에 동일하게 적용됩니다. 이바지과일선물은 겹보자기·노리개가 기본 포함되어 있어요.">
