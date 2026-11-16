@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  allowedDevOrigins: ["192.168.20.232"], // LAN IP: without this, dev JS is blocked, hydration fails, buttons are dead
   experimental: {
     agentFeedback: true,
   },

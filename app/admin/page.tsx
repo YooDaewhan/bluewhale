@@ -25,7 +25,7 @@ export default function AdminPage() {
       <div className="px-4 py-24 text-center">
         <img src="/brand/whale-fruits.webp" alt="" className="mx-auto h-32 w-auto" />
         <p className="mt-3 text-ink-900/60">관리자만 접근할 수 있는 페이지입니다.</p>
-        <Link href="/login" className="btn mt-6 inline-block">관리자 로그인</Link>
+        <Link href="/login#admin" className="btn mt-6 inline-block">관리자 로그인</Link>
       </div>
     );
 
@@ -164,6 +164,23 @@ function ProductForm({
   const [error, setError] = useState("");
   const set = <K extends keyof Product>(k: K, v: Product[K]) => setP((x) => ({ ...x, [k]: v }));
 
+  // ponytail: no backend, so the photo is stored as a downscaled JPEG data URL in localStorage; swap for real upload (S3/R2) later
+  function pickImage(file?: File) {
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 800 / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * k);
+      c.height = Math.round(img.height * k);
+      c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+      set("image", c.toDataURL("image/jpeg", 0.82));
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => setError("이미지 파일을 읽을 수 없습니다.");
+    img.src = URL.createObjectURL(file);
+  }
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (p.saleEnd < p.saleStart) return setError("판매 종료일이 시작일보다 빠릅니다.");
@@ -175,18 +192,13 @@ function ProductForm({
     <div className="fixed inset-0 z-30 grid place-items-center bg-ink-950/60 p-4" onClick={onCancel}>
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="w-full max-w-lg space-y-3 rounded-sm bg-white p-6 shadow-xl">
         <h2 className="font-serif text-xl">{"id" in initial ? "상품 수정" : "상품 등록"}</h2>
-        <div className="grid grid-cols-[80px_1fr] gap-3">
-          <Label text="이모지">
-            <input className="field text-center text-2xl" value={p.emoji} onChange={(e) => set("emoji", e.target.value)} maxLength={4} required />
-          </Label>
-          <Label text="상품명">
-            <input className="field" value={p.name} onChange={(e) => set("name", e.target.value)} required />
-          </Label>
-        </div>
+        <Label text="상품명">
+          <input className="field" value={p.name} onChange={(e) => set("name", e.target.value)} required />
+        </Label>
         <div className="grid grid-cols-[80px_1fr] items-end gap-3">
           <FruitImage key={p.image} p={p} className="h-[68px] w-20 rounded-sm text-3xl" />
-          <Label text="상품 사진 URL (비우면 이모지 표시)">
-            <input className="field" type="url" placeholder="https://..." value={p.image} onChange={(e) => set("image", e.target.value)} />
+          <Label text="상품 사진">
+            <input className="field" type="file" accept="image/*" onChange={(e) => pickImage(e.target.files?.[0])} />
           </Label>
         </div>
         <div className="grid grid-cols-2 gap-3">

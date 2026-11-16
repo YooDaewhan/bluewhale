@@ -13,6 +13,8 @@ const FILTERS: { key: SaleStatus | "all"; label: string }[] = [
   { key: "upcoming", label: "Coming Soon" },
   { key: "ended", label: "Archive" },
 ];
+const SHOW_FRUITS = false; // individual-fruit tab hidden on main for now; flip to true to bring it back
+const TABS = [["basket", "과일 바구니", "Gift Basket"], ["fruit", "과일", "Fresh Fruit"]] as const;
 const PROMISES = [
   { no: "01", title: "산지 완숙 수확", text: "나무에서 충분히 익힌 뒤 수확해 향과 당도가 가장 높을 때 보냅니다." },
   { no: "02", title: "당도 선별 인증", text: "비파괴 당도 선별기로 기준을 통과한 과일만 블루웨일 라벨을 붙입니다." },
@@ -25,7 +27,7 @@ export default function Home() {
   const [shop, setShop] = useState<"basket" | "fruit">("basket");
   // /#fruits (e.g. from product detail breadcrumb) opens the fruit tab
   useEffect(() => {
-    const sync = () => location.hash === "#fruits" && setShop("fruit");
+    const sync = () => SHOW_FRUITS && location.hash === "#fruits" && setShop("fruit");
     sync();
     addEventListener("hashchange", sync);
     return () => removeEventListener("hashchange", sync);
@@ -44,14 +46,14 @@ export default function Home() {
       <section id="products" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20">
         <span id="fruits" className="block scroll-mt-24" aria-hidden />
         {/* basket is the main product; fruits are the secondary tab */}
-        <div className="grid grid-cols-2 border-b border-ink-900/10" role="tablist">
-          {([["basket", "과일 바구니", "Gift Basket"], ["fruit", "과일", "Fresh Fruit"]] as const).map(([key, ko, en]) => (
+        <div className="flex border-b border-ink-900/10" role="tablist">
+          {TABS.filter(([key]) => SHOW_FRUITS || key === "basket").map(([key, ko, en]) => (
             <button
               key={key}
               role="tab"
               aria-selected={shop === key}
               onClick={() => setShop(key)}
-              className={`-mb-px border-b-2 pb-4 text-left transition sm:pb-5 ${shop === key ? "border-ink-950" : "border-transparent text-ink-900/35 hover:text-ink-950"}`}
+              className={`-mb-px flex-1 border-b-2 pb-4 text-left transition sm:pb-5 ${shop === key ? "border-ink-950" : "border-transparent text-ink-900/35 hover:text-ink-950"}`}
             >
               <span className="block text-[10px] uppercase tracking-[0.3em] text-gold-600">{en}</span>
               <span className="mt-1 block font-serif text-2xl sm:text-4xl">{ko}</span>

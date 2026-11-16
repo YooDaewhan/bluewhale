@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore, type Role } from "../store";
 
 const DEMO: Record<Role, { id: string; pw: string; label: string }> = {
@@ -18,6 +18,8 @@ export default function LoginPage() {
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
   const [error, setError] = useState("");
+  // /login#admin opens the admin tab (hash read after mount to avoid hydration mismatch)
+  useEffect(() => { if (location.hash === "#admin") setRole("admin"); }, []);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
