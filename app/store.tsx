@@ -4,6 +4,10 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { INITIAL_BASKETS, MOCK_RESERVATIONS, type BasketSize, type Reservation, type ReservationStatus } from "./basket-data";
 import { MEMBERS } from "./member-data";
 import { MOCK_ORDERS, type Order, type OrderStatus } from "./order-data";
+import { HQ, K, resolveTenant, tkey } from "./tenant";
+
+export type Settings = { fruitsEnabled: boolean }; // per tenant: show the individual-fruit section on the storefront
+const DEFAULT_SETTINGS: Settings = { fruitsEnabled: false };
 
 export type Product = {
   id: number;
@@ -52,7 +56,7 @@ export function saleStatus(p: Product, today: string): SaleStatus {
 export const won = (n: number) => n.toLocaleString("ko-KR") + "원";
 
 // ponytail: localStorage only, mock — every browser has its own "DB"
-function usePersisted<T>(key: string, initial: T) {
+export function usePersisted<T>(key: string, initial: T) {
   const [value, setValue] = useState(initial);
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -72,6 +76,9 @@ function usePersisted<T>(key: string, initial: T) {
 }
 
 type Store = {
+  tenant: string; // "hq" or the franchise subdomain
+  settings: Settings;
+  setSettings: (fn: (s: Settings) => Settings) => void;
   ready: boolean;
   today: string;
   products: Product[];
@@ -97,19 +104,31 @@ type Store = {
 
 const Ctx = createContext<Store | null>(null);
 
+// The tenant comes from the hostname, known only in the browser. Render as HQ first, then remount the
+// store under the real tenant so no HQ data is ever written into a franchise's keys.
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts, r1] = usePersisted("bw-products-v2", INITIAL_PRODUCTS);
-  const [user, setUser, r2] = usePersisted<User | null>("bw-user", null);
-  const [cart, setCart, r3] = usePersisted<CartItem[]>("bw-cart", []);
-  const [reservations, setReservations, r4] = usePersisted<Reservation[]>("bw-reservations-v2", MOCK_RESERVATIONS);
-  const [orders, setOrders, r5] = usePersisted<Order[]>("bw-orders", MOCK_ORDERS);
-  const [baskets, setBaskets, r6] = usePersisted<BasketSize[]>("bw-baskets-v3", INITIAL_BASKETS);
+  const [tenant, setTenant] = useState(HQ);
+  useEffect(() => setTenant(resolveTenant()), []);
+  return <TenantStore key={tenant} tenant={tenant}>{children}</TenantStore>;
+}
+
+function TenantStore({ tenant, children }: { tenant: string; children: ReactNode }) {
+  const [products, setProducts, r1] = usePersisted(tkey(tenant, K.products), INITIAL_PRODUCTS);
+  const [user, setUser, r2] = usePersisted<User | null>(tkey(tenant, K.user), null);
+  const [cart, setCart, r3] = usePersisted<CartItem[]>(tkey(tenant, K.cart), []);
+  const [reservations, setReservations, r4] = usePersisted<Reservation[]>(tkey(tenant, K.reservations), MOCK_RESERVATIONS);
+  const [orders, setOrders, r5] = usePersisted<Order[]>(tkey(tenant, K.orders), MOCK_ORDERS);
+  const [baskets, setBaskets, r6] = usePersisted<BasketSize[]>(tkey(tenant, K.baskets), INITIAL_BASKETS);
+  const [settings, setSettings, r7] = usePersisted<Settings>(tkey(tenant, K.settings), DEFAULT_SETTINGS);
   // read the clock after mount, not during prerender; sv-SE gives local YYYY-MM-DD (UTC would be a day off in KST mornings)
   const [today, setToday] = useState("");
   useEffect(() => setToday(new Date().toLocaleDateString("sv-SE")), []);
 
   const store: Store = {
-    ready: r1 && r2 && r3 && r4 && r5 && r6 && today !== "",
+    tenant,
+    settings,
+    setSettings,
+    ready: r1 && r2 && r3 && r4 && r5 && r6 && r7 && today !== "",
     today,
     products,
     setProducts,

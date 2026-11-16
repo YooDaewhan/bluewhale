@@ -13,7 +13,6 @@ const FILTERS: { key: SaleStatus | "all"; label: string }[] = [
   { key: "upcoming", label: "Coming Soon" },
   { key: "ended", label: "Archive" },
 ];
-const SHOW_FRUITS = false; // individual-fruit tab hidden on main for now; flip to true to bring it back
 const TABS = [["basket", "과일 바구니", "Gift Basket"], ["fruit", "과일", "Fresh Fruit"]] as const;
 const PROMISES = [
   { no: "01", title: "산지 완숙 수확", text: "나무에서 충분히 익힌 뒤 수확해 향과 당도가 가장 높을 때 보냅니다." },
@@ -22,16 +21,17 @@ const PROMISES = [
 ];
 
 export default function Home() {
-  const { products, ready, today } = useStore();
+  const { products, ready, today, settings } = useStore();
+  const showFruits = settings.fruitsEnabled; // toggled per tenant in admin → 프렌차이즈 관리
   const [filter, setFilter] = useState<SaleStatus | "all">("all");
   const [shop, setShop] = useState<"basket" | "fruit">("basket");
   // /#fruits (e.g. from product detail breadcrumb) opens the fruit tab
   useEffect(() => {
-    const sync = () => SHOW_FRUITS && location.hash === "#fruits" && setShop("fruit");
+    const sync = () => showFruits && location.hash === "#fruits" && setShop("fruit");
     sync();
     addEventListener("hashchange", sync);
     return () => removeEventListener("hashchange", sync);
-  }, []);
+  }, [showFruits]);
   const order: SaleStatus[] = ["onsale", "upcoming", "ended"];
   const shown = ready
     ? [...products]
@@ -47,7 +47,7 @@ export default function Home() {
         <span id="fruits" className="block scroll-mt-24" aria-hidden />
         {/* basket is the main product; fruits are the secondary tab */}
         <div className="flex border-b border-ink-900/10" role="tablist">
-          {TABS.filter(([key]) => SHOW_FRUITS || key === "basket").map(([key, ko, en]) => (
+          {TABS.filter(([key]) => showFruits || key === "basket").map(([key, ko, en]) => (
             <button
               key={key}
               role="tab"
@@ -61,7 +61,7 @@ export default function Home() {
           ))}
         </div>
 
-        {shop === "basket" ? (
+        {shop === "basket" || !showFruits ? (
           <GiftBaskets />
         ) : (
         <>

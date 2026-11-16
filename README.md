@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bluewhale The Fruit
 
-## Getting Started
-
-First, run the development server:
+열대과일·과일 바구니 쇼핑몰 (Next.js 16, 목업). 서버/DB 없이 브라우저 localStorage에 저장합니다.
+> `AGENTS.md`: 이 Next.js는 기존과 다릅니다. 코드 작성 전 `node_modules/next/dist/docs/`를 확인하세요.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev                       # http://localhost:3000
+node --test scripts/*.test.mjs    # 바구니 금액 계산 · 테넌트 판별 테스트
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+데모 계정: 고객 `customer / 1234`, 관리자 `admin / admin1234` (관리자 탭 선택 후 로그인, 또는 `/login#admin`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 프렌차이즈 (멀티 테넌트) 설계
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 주소 | 테넌트 |
+|---|---|
+| `www.a.com`, `a.com` | 본사 (`hq`) |
+| `seoul.a.com` | 가맹점 `seoul` |
 
-## Learn More
+- 서브도메인이 곧 테넌트 ID입니다. 판별 로직은 [app/tenant.ts](app/tenant.ts)의 `tenantFrom()` 하나뿐이고, 나머지 코드는 `useStore().tenant`만 봅니다.
+- **등록**: 본사 관리자 → `프렌차이즈 관리` 탭에서 이름·서브도메인을 입력하면 본사의 **메뉴(개별 과일, 바구니)가 복사된 별도 DB**가 만들어집니다.
+- **분리되는 것**: 주문·배송(주문에 포함), 픽업 예약, 장바구니, 로그인 세션, 메뉴(복사 후에는 각자 수정), 설정. 본사 데이터는 건드리지 않습니다.
+- **개별 과일 켜기/끄기**: `프렌차이즈 관리` 표의 체크박스(본사 포함). 꺼져 있으면 메인에는 `과일 바구니`만 보입니다. 기본값은 꺼짐.
+- `프렌차이즈 관리` 탭은 본사에서만 보입니다.
 
-To learn more about Next.js, take a look at the following resources:
+### 지금 구현(목업)의 한계
+- 테넌트 분리는 localStorage 키 접두사(`seoul:bw-orders` 등, 본사는 접두사 없음)입니다. 브라우저 저장소는 **도메인별로 분리**되므로, 실제 서브도메인(`seoul.a.com`)에서는 본사에서 만든 DB 덤프가 보이지 않습니다. 서버 없이는 도메인 간 공유가 불가능합니다.
+- 로컬 테스트: `localhost:3000/?tenant=seoul` (같은 저장소를 공유하므로 본사에서 만든 가맹점을 그대로 열 수 있음). 탭 세션 동안 유지되며 `/?tenant=hq`로 본사 복귀. 같은 탭 기준이라 새 탭은 본사로 열립니다.
+- LAN IP로 접속할 때는 `next.config.ts`의 `allowedDevOrigins`에 그 IP가 있어야 버튼이 동작합니다.
+- 서브도메인 `www, hq, admin, api, app`은 예약어입니다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 서버 배포 시 바꿀 부분
+1. 가맹점당 DB(또는 스키마) 하나. `프렌차이즈 등록` = 본사 메뉴 테이블 덤프 → 새 DB 생성(주문·예약은 빈 상태).
+2. 서버(미들웨어)가 `Host` 헤더에서 테넌트를 판별해 해당 DB로 연결. 와일드카드 DNS(`*.a.com`) + 와일드카드 인증서 필요.
+3. `usePersisted`(localStorage)를 API 호출로 교체. `tkey()` 접두사와 `?tenant=`는 제거.
+4. `프렌차이즈 관리`의 `열기` 링크는 이미 운영 도메인에서는 `https://<id>.<도메인>`으로 만들어집니다.
+5. 로그인은 현재 클라이언트 mock(`ACCOUNTS`). 가맹점별 관리자 계정은 서버 인증으로.

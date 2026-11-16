@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FruitImage, INITIAL_PRODUCTS, saleStatus, useStore, won, type Product } from "../store";
 import ReservationCalendar from "./calendar";
+import FranchisesAdmin from "./franchises";
 import BasketsAdmin from "./baskets";
 import MembersAdmin from "./members";
 import ShippingAdmin from "./shipping";
@@ -14,9 +15,9 @@ const EMPTY: Omit<Product, "id"> = { emoji: "🍍", image: "", name: "", origin:
 const STATUS_LABEL = { onsale: "판매중", upcoming: "판매예정", ended: "판매종료" };
 
 export default function AdminPage() {
-  const { ready, today, user, products, setProducts } = useStore();
+  const { ready, today, user, products, setProducts, tenant } = useStore();
   const [editing, setEditing] = useState<Product | Omit<Product, "id"> | null>(null);
-  const [tab, setTab] = useState<"reservations" | "shipping" | "members" | "products">("reservations");
+  const [tab, setTab] = useState<"reservations" | "shipping" | "members" | "products" | "franchises">("reservations");
   const [kind, setKind] = useState<"basket" | "fruit">("basket");
 
   if (!ready) return null;
@@ -41,7 +42,9 @@ export default function AdminPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-10 flex gap-6 overflow-x-auto overflow-y-hidden whitespace-nowrap border-b border-ink-900/10" role="tablist">
-        {([["reservations", "픽업 예약 캘린더"], ["shipping", "주문 · 발송"], ["members", "회원 관리"], ["products", "상품 관리"]] as const).map(([key, label]) => (
+        {([["reservations", "픽업 예약 캘린더"], ["shipping", "주문 · 발송"], ["members", "회원 관리"], ["products", "상품 관리"], ["franchises", "프렌차이즈 관리"]] as const)
+          .filter(([key]) => key !== "franchises" || tenant === "hq")
+          .map(([key, label]) => (
           <button
             key={key}
             role="tab"
@@ -54,7 +57,9 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {tab === "members" ? (
+      {tab === "franchises" ? (
+        <FranchisesAdmin />
+      ) : tab === "members" ? (
         <MembersAdmin />
       ) : tab === "shipping" ? (
         <ShippingAdmin />
