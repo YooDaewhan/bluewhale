@@ -43,8 +43,21 @@ export default function Home() {
     <>
       <HeroSlider />
 
-      <section id="products" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20">
+      {/* brand ribbon under the slider */}
+      <section className="relative overflow-hidden bg-gold-300/60">
+        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-6 sm:gap-6 sm:py-8">
+          <img src="/brand/whale-fruits.webp" alt="" className="h-14 w-14 shrink-0 rounded-full bg-ivory object-contain p-1.5 ring-2 ring-brand sm:h-20 sm:w-20" />
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.35em] text-gold-600">Bluewhale The Fruit</p>
+            <p className="mt-1 text-base font-semibold text-ink-950 sm:text-xl">24시 프리미엄 수입 &amp; 국내 과일전문점</p>
+          </div>
+        </div>
+        <img src="/brand/whale-swim.webp" alt="" aria-hidden className="pointer-events-none absolute -bottom-3 right-[4%] hidden h-24 w-auto animate-[bob_5s_ease-in-out_infinite] md:block" />
+      </section>
+
+      <section id="products" className="relative mx-auto max-w-6xl scroll-mt-24 px-4 py-20">
         <span id="fruits" className="block scroll-mt-24" aria-hidden />
+        <img src="/brand/whale-tube.webp" alt="" aria-hidden className="pointer-events-none absolute right-4 top-4 h-20 w-auto animate-[bob_4s_ease-in-out_infinite] sm:h-28" />
         {/* basket is the main product; fruits are the secondary tab */}
         <div className="flex border-b border-ink-900/10" role="tablist">
           {TABS.filter(([key]) => showFruits || key === "basket").map(([key, ko, en]) => (
@@ -96,6 +109,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-20 text-center">
+        <img src="/brand/whale-flower.webp" alt="" className="mx-auto mb-8 h-32 w-auto sm:h-40" loading="lazy" />
         <p className="eyebrow">Since the Deep Blue</p>
         <p className="mt-6 font-serif text-2xl leading-relaxed text-ink-900 sm:text-3xl">
           고래가 대양을 건너듯, 우리는 가장 좋은 순간의 열대과일을
@@ -104,11 +118,12 @@ export default function Home() {
         </p>
       </section>
 
-      <section className="border-y border-ink-900/10 bg-white/50">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:grid-cols-3">
+      <section className="relative overflow-hidden bg-gold-300/50">
+        <img src="/brand/mascot.webp" alt="" aria-hidden className="pointer-events-none absolute -bottom-6 -right-4 hidden h-60 w-auto lg:block" loading="lazy" />
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:grid-cols-3 lg:pr-56">
           {PROMISES.map((x) => (
             <div key={x.no}>
-              <p className="font-serif text-3xl italic text-gold-600">{x.no}</p>
+              <p className="grid h-12 w-12 place-items-center rounded-full bg-brand font-serif text-xl text-ivory">{x.no}</p>
               <h3 className="mt-3 font-serif text-xl">{x.title}</h3>
               <p className="mt-2 text-sm leading-6 text-ink-600">{x.text}</p>
             </div>
@@ -117,7 +132,10 @@ export default function Home() {
       </section>
 
       <section id="story" className="mx-auto grid max-w-6xl scroll-mt-24 items-center gap-12 px-4 py-24 md:grid-cols-2">
-        <img src="/slides/3.jpg" alt="코코넛 스무디볼" className="aspect-[4/5] w-full object-cover" loading="lazy" />
+        <figure className="relative">
+          <img src="/store/front.webp" alt="블루웨일 더 후르츠 매장 전경" className="aspect-[4/5] w-full rounded-2xl object-cover" loading="lazy" />
+          <img src="/brand/whale-tube.webp" alt="" aria-hidden className="absolute -bottom-8 -left-4 h-28 w-auto -rotate-6 sm:h-36" loading="lazy" />
+        </figure>
         <div>
           <p className="eyebrow">Our Story</p>
           <h2 className="mt-3 font-serif text-4xl leading-tight">
@@ -128,7 +146,7 @@ export default function Home() {
           <p className="mt-6 text-sm leading-7 text-ink-600">
             블루웨일은 필리핀의 망고 농장, 코스타리카의 파인애플 밭, 하와이의 파파야 과수원과 직접 계약합니다. 중간 유통을 줄인 만큼, 과일이 나무에 머무는 시간을 늘렸습니다.
           </p>
-          <img src="/brand/mascot.webp" alt="" className="mt-10 h-36 w-auto" loading="lazy" />
+          <img src="/brand/logo-line.webp" alt="Bluewhale The Fruit" className="mt-10 h-40 w-auto" loading="lazy" />
         </div>
       </section>
     </>
