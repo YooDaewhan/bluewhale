@@ -4,17 +4,16 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { Order } from "../order-data";
+import { FREE_SHIPPING_OVER, shippingFee, type Order } from "../order-data";
 import { FruitImage, useStore, won } from "../store";
 
-const SHIPPING_FEE = 3500;
-const FREE_SHIPPING_OVER = 50000;
 const MESSAGES = ["문 앞에 놓아주세요", "경비실에 맡겨주세요", "배송 전 연락 부탁드려요", "파손 주의 부탁드립니다", "직접 입력"];
 
 type Done = Order;
 
 export default function CartPage() {
-  const { ready, user, products, cart, setKg, clearCart, addOrder } = useStore();
+  const { ready, products, cart, setKg, clearCart, addOrder } = useStore();
+  const [error, setError] = useState("");
   const [msgPreset, setMsgPreset] = useState(MESSAGES[0]);
   const [done, setDone] = useState<Done | null>(null);
 
@@ -22,24 +21,27 @@ export default function CartPage() {
     .map((i) => ({ ...i, p: products.find((p) => p.id === i.productId) }))
     .filter((l) => l.p);
   const subtotal = lines.reduce((s, l) => s + l.p!.pricePerKg * l.kg, 0);
-  const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_OVER ? 0 : SHIPPING_FEE;
+  const shipping = shippingFee(subtotal);
   const total = subtotal + shipping;
 
-  // ponytail: saved to localStorage only (mock), so admin/customer views in this browser can see it
-  function submit(e: React.FormEvent<HTMLFormElement>) {
+  // the server prices the order from its own product table; `total` above is only the preview
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    setDone(
-      addOrder({
-        name: String(f.get("name")),
-        phone: String(f.get("phone")),
-        address: `(${f.get("zip")}) ${f.get("addr1")} ${f.get("addr2")}`.trim(),
-        message: msgPreset === "직접 입력" ? String(f.get("customMsg") || "-") : msgPreset,
-        total,
-        lines: lines.map((l) => ({ productId: l.p!.id, emoji: l.p!.emoji, name: l.p!.name, kg: l.kg, pricePerKg: l.p!.pricePerKg })),
-      }),
-    );
-    clearCart();
+    try {
+      setDone(
+        await addOrder({
+          name: String(f.get("name")),
+          phone: String(f.get("phone")),
+          address: `(${f.get("zip")}) ${f.get("addr1")} ${f.get("addr2")}`.trim(),
+          message: msgPreset === "직접 입력" ? String(f.get("customMsg") || "-") : msgPreset,
+          lines: lines.map((l) => ({ productId: l.p!.id, kg: l.kg })),
+        }),
+      );
+      clearCart();
+    } catch (err) {
+      setError((err as Error).message);
+    }
   }
 
   if (done)
@@ -47,7 +49,7 @@ export default function CartPage() {
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
         <img src="/brand/mascot.webp" alt="" className="mx-auto h-48 w-auto" />
         <h1 className="mt-4 font-serif text-3xl">Thank you — 주문이 접수되었습니다</h1>
-        <p className="mt-1 text-sm text-ink-900/60">발송되면 내 주문에서 송장번호를 확인할 수 있어요. (데모: 이 브라우저에만 저장됩니다)</p>
+        <p className="mt-1 text-sm text-ink-900/60">주문번호를 보관해 주세요. 발송되면 연락처로 송장번호를 안내해 드립니다.</p>
         <dl className="mt-8 space-y-2 rounded-sm bg-white p-6 text-left text-sm border border-ink-900/10">
           {[
             ["주문번호", done.id],
@@ -64,8 +66,7 @@ export default function CartPage() {
           ))}
         </dl>
         <div className="mt-6 flex justify-center gap-3">
-          <Link href="/orders" className="btn">내 주문 보기</Link>
-          <Link href="/" className="border border-ink-950 px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em]">쇼핑 계속하기</Link>
+          <Link href="/" className="btn">쇼핑 계속하기</Link>
         </div>
       </div>
     );
@@ -117,14 +118,8 @@ export default function CartPage() {
             <Row k="결제예정" v={won(total)} bold />
           </div>
 
-          {!user ? (
-            <div className="mt-4 text-center text-sm">
-              <p className="text-ink-900/60">주문하려면 로그인이 필요해요.</p>
-              <Link href="/login" className="btn mt-3 inline-block">로그인하기</Link>
-            </div>
-          ) : (
-            <form onSubmit={submit} className="mt-4 space-y-2.5">
-              <input name="name" className="field" placeholder="받는 분" defaultValue={user.name} required />
+          <form onSubmit={submit} className="mt-4 space-y-2.5">
+              <input name="name" className="field" placeholder="받는 분" required />
               <input name="phone" className="field" type="tel" placeholder="연락처 (010-0000-0000)" pattern="[0-9\-]{9,13}" required />
               <div className="flex gap-2">
                 <input name="zip" className="field w-28" placeholder="우편번호" inputMode="numeric" pattern="[0-9]{5}" required />
@@ -140,7 +135,7 @@ export default function CartPage() {
               )}
               <button className="btn w-full py-3">{won(total)} 주문하기</button>
             </form>
-          )}
+          {error && <p className="mt-3 text-sm text-coral-500">{error}</p>}
         </div>
       </aside>
     </div>

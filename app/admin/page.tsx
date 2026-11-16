@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FruitImage, INITIAL_PRODUCTS, saleStatus, useStore, won, type Product } from "../store";
+import { FruitImage, saleStatus, useStore, won, type Product } from "../store";
 import ReservationCalendar from "./calendar";
 import FranchisesAdmin from "./franchises";
 import BasketsAdmin from "./baskets";
@@ -81,15 +81,9 @@ export default function AdminPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-serif text-3xl">개별 과일 관리</h1>
-          <p className="text-sm text-ink-900/50">목업 관리자 · 변경 내용은 이 브라우저에만 저장됩니다.</p>
+          <p className="text-sm text-ink-900/50">kg 단위로 판매하는 과일입니다. 저장하면 바로 매장에 반영됩니다.</p>
         </div>
         <div className="flex gap-2">
-          <button
-            className="rounded-sm border border-ink-900/15 px-4 py-2 text-sm hover:bg-white"
-            onClick={() => confirm("상품 목록을 초기 데이터로 되돌릴까요?") && setProducts(() => INITIAL_PRODUCTS)}
-          >
-            초기화
-          </button>
           <button className="btn" onClick={() => setEditing(EMPTY)}>+ 상품 등록</button>
         </div>
       </div>
@@ -169,21 +163,10 @@ function ProductForm({
   const [error, setError] = useState("");
   const set = <K extends keyof Product>(k: K, v: Product[K]) => setP((x) => ({ ...x, [k]: v }));
 
-  // ponytail: no backend, so the photo is stored as a downscaled JPEG data URL in localStorage; swap for real upload (S3/R2) later
+  const { uploadImage } = useStore();
+  // the file is uploaded to the server right away; the product only stores its path
   function pickImage(file?: File) {
-    if (!file) return;
-    const img = new Image();
-    img.onload = () => {
-      const k = Math.min(1, 800 / Math.max(img.width, img.height));
-      const c = document.createElement("canvas");
-      c.width = Math.round(img.width * k);
-      c.height = Math.round(img.height * k);
-      c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
-      set("image", c.toDataURL("image/jpeg", 0.82));
-      URL.revokeObjectURL(img.src);
-    };
-    img.onerror = () => setError("이미지 파일을 읽을 수 없습니다.");
-    img.src = URL.createObjectURL(file);
+    if (file) uploadImage(file).then((path) => set("image", path), (e: Error) => setError(e.message));
   }
 
   function submit(e: React.FormEvent) {

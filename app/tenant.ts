@@ -1,23 +1,12 @@
 // Multi-tenant (franchise) helpers. www.a.com = HQ, seoul.a.com = franchise "seoul".
-// ponytail: tenants are separated by a localStorage key prefix (mock). With a real backend, resolve the tenant
-// from the Host header on the server and use one DB per tenant instead; the rest of the app only sees `tenant`.
+// The server resolves the tenant from the Host header with the same tenantFrom() (app/server.ts) and scopes every
+// query by franchise_id; the browser only uses it for the cart key and the ?tenant= test switch.
 
 export const HQ = "hq";
 export const TENANT_RE = /^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/;
 export const RESERVED = ["www", "hq", "admin", "api", "app"];
 
-// storage keys of one tenant's database (HQ uses them as-is, franchises get a "<id>:" prefix)
-export const K = {
-  products: "bw-products-v2",
-  baskets: "bw-baskets-v3",
-  reservations: "bw-reservations-v2",
-  orders: "bw-orders",
-  cart: "bw-cart",
-  user: "bw-user",
-  settings: "bw-settings",
-} as const;
-export const FRANCHISES_KEY = "bw-franchises"; // HQ only: registry of franchises
-
+// localStorage key of a tenant's cart (HQ uses it as-is, franchises get a "<id>:" prefix)
 export const tkey = (tenant: string, key: string) => (tenant === HQ ? key : `${tenant}:${key}`);
 
 // hostname "seoul.a.com" / "seoul.localhost" → "seoul"; "www.a.com", "a.com", "localhost", IPs → HQ.
@@ -40,11 +29,3 @@ export function resolveTenant(): string {
   }
 }
 
-export const readJson = <T,>(key: string, fallback: T): T => {
-  try {
-    const s = localStorage.getItem(key);
-    return s ? (JSON.parse(s) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-};

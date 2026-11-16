@@ -1,25 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { MEMBERS } from "../member-data";
 import { useStore, won } from "../store";
 import ExcelButton from "./excel-button";
 
 export default function MembersAdmin() {
-  const { orders, reservations } = useStore();
+  const { orders, reservations, members: MEMBERS, today } = useStore();
   const [q, setQ] = useState("");
 
   const rows = MEMBERS.map((m) => {
     const myOrders = orders.filter((o) => o.userId === m.id);
-    // reservations don't carry a user id yet, so match by nickname (mock)
-    const myRes = reservations.filter((r) => r.name === m.nickname && r.status !== "취소");
+    const myRes = reservations.filter((r) => r.userId === m.id && r.status !== "취소");
     const spent = myOrders.reduce((s, o) => s + o.total, 0) + myRes.reduce((s, r) => s + r.total, 0);
     const lastAddress = [...myOrders].sort((a, b) => b.id.localeCompare(a.id))[0]?.address;
     return { m, orderCount: myOrders.length, resCount: myRes.length, spent, lastAddress };
   }).filter(({ m }) => !q || m.nickname.includes(q) || m.kakaoId.includes(q));
 
   const total = MEMBERS.length;
-  const newThisMonth = MEMBERS.filter((m) => m.joinedAt >= "2026-11-01").length;
+  const newThisMonth = MEMBERS.filter((m) => m.joinedAt.slice(0, 7) === today.slice(0, 7)).length;
   const marketing = MEMBERS.filter((m) => m.marketing).length;
 
   return (
@@ -28,7 +26,7 @@ export default function MembersAdmin() {
         <div>
           <p className="eyebrow">Members</p>
           <h1 className="mt-1 font-serif text-3xl">회원 관리</h1>
-          <p className="text-sm text-ink-900/50">카카오 로그인으로 가입한 회원 목록입니다. (목업)</p>
+          <p className="text-sm text-ink-900/50">카카오 로그인으로 가입한 회원 목록입니다. (카카오 로그인 연동 후 채워집니다)</p>
         </div>
         <ExcelButton label="회원 엑셀 다운로드" />
       </div>

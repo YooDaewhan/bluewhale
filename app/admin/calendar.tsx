@@ -48,7 +48,7 @@ export default function ReservationCalendar() {
         <div>
           <p className="eyebrow">Pickup Reservations</p>
           <h1 className="mt-1 font-serif text-3xl">픽업 예약 캘린더</h1>
-          <p className="text-sm text-ink-900/50">목업 데이터 + 이 브라우저에서 접수된 예약이 함께 표시됩니다.</p>
+          <p className="text-sm text-ink-900/50">고객이 접수한 픽업 예약입니다. 날짜를 눌러 상태를 변경하세요.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <ExcelButton label="예약 엑셀" />

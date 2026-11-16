@@ -76,21 +76,24 @@ export default function BasketOrderPage() {
     if (count === 0) return fail("바구니를 1개 이상 선택해주세요.", "step-1");
     if (!message) return fail("바구니에 들어갈 문구를 입력해주세요.", "step-3");
     if (!date || !time) return fail("픽업 날짜와 시간을 선택해주세요.", "step-4");
-    setDone(
-      addReservation({
-        pickupDate: date,
-        pickupTime: time,
-        name: String(f.get("name")).trim(),
-        phone: String(f.get("phone")).trim(),
-        memo: String(f.get("memo") ?? "").trim(),
-        items,
-        wrap,
-        extras,
-        message,
-        total,
-      }),
+    // the server prices the reservation from its own menu; `total` here is only the preview
+    addReservation({
+      pickupDate: date,
+      pickupTime: time,
+      name: String(f.get("name")).trim(),
+      phone: String(f.get("phone")).trim(),
+      memo: String(f.get("memo") ?? "").trim(),
+      items,
+      wrap,
+      extras,
+      message,
+    }).then(
+      (r) => {
+        setDone(r);
+        scrollTo({ top: 0 });
+      },
+      (err: Error) => setError(err.message),
     );
-    scrollTo({ top: 0 });
   }
   function fail(msg: string, anchor: string) {
     setError(msg);
@@ -105,7 +108,7 @@ export default function BasketOrderPage() {
         <img src="/brand/whale-flower.webp" alt="" className="mx-auto h-36 w-auto" />
         <p className="eyebrow mt-8">Reservation Confirmed</p>
         <h1 className="mt-3 font-serif text-4xl">예약이 완료되었습니다</h1>
-        <p className="mt-3 text-sm text-ink-600">픽업 시간에 맞춰 바구니를 준비해 두겠습니다. (데모: 이 브라우저에만 저장됩니다)</p>
+        <p className="mt-3 text-sm text-ink-600">픽업 시간에 맞춰 바구니를 준비해 두겠습니다.</p>
         <Summary r={done} />
         <div className="mt-8 flex justify-center gap-3">
           <Link href="/" className="btn">홈으로</Link>

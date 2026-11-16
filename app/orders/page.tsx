@@ -19,8 +19,7 @@ export default function MyOrdersPage() {
     );
 
   const mine = orders.filter((o) => o.userId === user.id).sort((a, b) => b.id.localeCompare(a.id));
-  // reservations have no account link (mock), so match by the customer's name
-  const myPickups = reservations.filter((r) => r.name === user.name).sort((a, b) => b.pickupDate.localeCompare(a.pickupDate));
+  const myPickups = reservations.filter((r) => r.userId === user.id).sort((a, b) => b.pickupDate.localeCompare(a.pickupDate));
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">

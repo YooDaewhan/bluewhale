@@ -75,6 +75,7 @@ export const PICKUP_TIMES = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00
 export type BasketLine = { size: SizeId; qty: number; addons?: string[] }; // addons: BasketAddon ids of that product
 export type ReservationStatus = "예약" | "준비완료" | "픽업완료" | "취소";
 export type Reservation = {
+  userId?: string; // member id when booked while logged in
   id: string;
   pickupDate: string; // YYYY-MM-DD
   pickupTime: string;
@@ -101,21 +102,3 @@ export function basketTotal(items: BasketLine[], wrap: WrapId, extras: ExtraId[]
   return base + perBasket * count;
 }
 
-const r = (id: string, pickupDate: string, pickupTime: string, name: string, phone: string, items: BasketLine[], wrap: WrapId, extras: ExtraId[], message: string, status: ReservationStatus, memo = ""): Reservation => ({
-  id, pickupDate, pickupTime, name, phone, items, wrap, extras, message, memo, status, total: basketTotal(items, wrap, extras),
-});
-
-// ponytail: mock reservations seeded into localStorage; real ones need a backend
-export const MOCK_RESERVATIONS: Reservation[] = [
-  r("R-1101", "2026-11-02", "11:00", "박서연", "010-2231-8890", [{ size: "handlebox-m", qty: 1 }], "crystal", [], "생일 축하해", "픽업완료"),
-  r("R-1102", "2026-11-04", "15:00", "(주)해온상사", "02-555-1200", [{ size: "handlebox-l", qty: 3 }], "double", [], "늘 고맙습니다", "픽업완료", "세금계산서 발행 요청"),
-  r("R-1103", "2026-11-06", "10:00", "김민준", "010-9012-3344", [{ size: "chilling-bag", qty: 2 }], "basic", [], "건강하세요", "준비완료"),
-  r("R-1104", "2026-11-10", "17:00", "이하은", "010-7788-1020", [{ size: "ibaji", qty: 1 }], "basic", [], "축하합니다", "예약", "오후 5시 정각 픽업, 차량 대기"),
-  r("R-1105", "2026-11-10", "13:00", "정우성", "010-3456-7788", [{ size: "basket-m", qty: 2 }, { size: "cutting-bag", qty: 1 }], "crystal", [], "감사합니다 선생님", "준비완료"),
-  r("R-1106", "2026-11-11", "12:00", "최지아", "010-1111-2222", [{ size: "birth", qty: 1 }], "crystal", ["norigae"], "출산을 축하합니다", "예약"),
-  r("R-1107", "2026-11-11", "16:00", "한빛병원 간호부", "031-777-0909", [{ size: "handlebox-s", qty: 4 }], "basic", [], "건강하세요", "예약", "퀵 배송 요청"),
-  r("R-1108", "2026-11-14", "11:00", "윤도현", "010-6060-7070", [{ size: "basket-s", qty: 1 }], "double", [], "축하합니다", "예약"),
-  r("R-1109", "2026-11-20", "14:00", "(주)블루오션", "02-312-4545", [{ size: "basket-xl", qty: 2 }, { size: "handlebox-xl", qty: 5 }], "double", [], "새해 복 많이 받으세요", "예약", "로고 스티커 동봉"),
-  r("R-1110", "2026-11-25", "10:00", "강예린", "010-4545-1212", [{ size: "halfmoon-bag", qty: 1 }], "basic", [], "늘 고맙습니다", "취소", "고객 요청 취소"),
-  r("R-1111", "2026-11-28", "18:00", "오세훈", "010-8080-9090", [{ size: "basket-l", qty: 1 }], "crystal", ["norigae"], "결혼 축하해!", "예약"),
-];

@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useState } from "react";
-import { BASKET_CATEGORIES, INITIAL_BASKETS, basketCost, basketMeta, basketWeight, type BasketSize } from "../basket-data";
+import { BASKET_CATEGORIES, basketCost, basketMeta, basketWeight, type BasketSize } from "../basket-data";
 import { compositionText, useStore, won, type Product } from "../store";
 
 const EMPTY: Omit<BasketSize, "id"> = { ko: "", en: "", category: "바구니", fruitCount: "", price: 0, serves: "", items: [], note: "", addons: [], desc: "", image: "", active: true };
@@ -27,12 +27,6 @@ export default function BasketsAdmin() {
           <p className="text-sm text-ink-900/50">구성 과일과 kg을 정하면 무게와 원가가 자동 계산됩니다. 판매가는 원가를 보고 정하세요.</p>
         </div>
         <div className="flex gap-2">
-          <button
-            className="border border-ink-900/15 px-4 py-2 text-sm hover:bg-white"
-            onClick={() => confirm("바구니 목록을 초기 데이터로 되돌릴까요?") && setBaskets(() => INITIAL_BASKETS)}
-          >
-            초기화
-          </button>
           <button className="btn" onClick={() => setEditing(EMPTY)}>+ 바구니 등록</button>
         </div>
       </div>
@@ -94,6 +88,7 @@ function BasketForm({
   onSave: (b: BasketSize | Omit<BasketSize, "id">) => void;
   onCancel: () => void;
 }) {
+  const { uploadImage } = useStore();
   const [b, setB] = useState(initial);
   const [error, setError] = useState("");
   const set = <K extends keyof BasketSize>(k: K, v: BasketSize[K]) => setB((x) => ({ ...x, [k]: v }));
@@ -228,8 +223,16 @@ function BasketForm({
           <div className="h-[84px] w-20 overflow-hidden bg-gold-300/30">
             {b.image ? <img src={b.image} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-3xl">🧺</div>}
           </div>
-          <Label text="사진 URL (비우면 🧺 표시)">
-            <input className="field" type="url" value={b.image} onChange={(e) => set("image", e.target.value)} placeholder="https://..." />
+          <Label text="사진 (없으면 🧺 표시)">
+            <input
+              className="field"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) uploadImage(file).then((path) => set("image", path), (err: Error) => setError(err.message));
+              }}
+            />
           </Label>
         </div>
         <label className="flex items-center gap-2 text-sm">
