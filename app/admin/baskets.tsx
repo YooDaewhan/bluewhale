@@ -184,7 +184,7 @@ function BasketForm({
             {(b.addons ?? []).map((ad, n) => (
               <div key={n} className="flex items-center gap-2">
                 <input className="field flex-1" value={ad.name} placeholder="옵션명 (예: 생화 추가)" onChange={(e) => set("addons", b.addons.map((x, i) => (i === n ? { ...x, name: e.target.value } : x)))} required />
-                <input className="field w-28 text-right" type="number" min={0} step={500} value={ad.price} onChange={(e) => set("addons", b.addons.map((x, i) => (i === n ? { ...x, price: Number(e.target.value) } : x)))} aria-label="옵션 가격" />
+                <input className="field w-28 text-right" type="number" min={0} step={10} value={ad.price} onChange={(e) => set("addons", b.addons.map((x, i) => (i === n ? { ...x, price: Number(e.target.value) } : x)))} aria-label="옵션 가격" />
                 <span className="text-xs text-ink-900/50">원</span>
                 <button type="button" className="h-9 w-9 text-ink-900/40 hover:text-coral-500" onClick={() => set("addons", b.addons.filter((_, i) => i !== n))} aria-label="옵션 삭제">✕</button>
               </div>
@@ -204,7 +204,7 @@ function BasketForm({
           </dl>
           <div>
             <Label text="판매가 (원)">
-              <input className="field text-right font-serif text-xl" type="number" min={0} step={1000} value={b.price || ""} onChange={(e) => set("price", Number(e.target.value))} required />
+              <input className="field text-right font-serif text-xl" type="number" min={0} step={10} value={b.price || ""} onChange={(e) => set("price", Number(e.target.value))} required />
             </Label>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[1.3, 1.5, 1.8].map((m) => (

@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FruitImage, saleStatus, useStore, won, type Product } from "../store";
+import { FruitImage, saleStatus, usePersisted, useStore, won, type Product } from "../store";
 import ReservationCalendar from "./calendar";
 import FranchisesAdmin from "./franchises";
 import BasketsAdmin from "./baskets";
@@ -17,10 +17,11 @@ const STATUS_LABEL = { onsale: "판매중", upcoming: "판매예정", ended: "�
 export default function AdminPage() {
   const { ready, today, user, products, setProducts, tenant } = useStore();
   const [editing, setEditing] = useState<Product | Omit<Product, "id"> | null>(null);
-  const [tab, setTab] = useState<"reservations" | "shipping" | "members" | "products" | "franchises">("reservations");
-  const [kind, setKind] = useState<"basket" | "fruit">("basket");
+  // 새로고침해도 보던 탭이 유지되도록 localStorage에 저장
+  const [tab, setTab, tabReady] = usePersisted<"reservations" | "shipping" | "members" | "products" | "franchises">("admin-tab", "reservations");
+  const [kind, setKind] = usePersisted<"basket" | "fruit">("admin-kind", "basket");
 
-  if (!ready) return null;
+  if (!ready || !tabReady) return null;
   if (user?.role !== "admin")
     return (
       <div className="px-4 py-24 text-center">
@@ -194,7 +195,7 @@ function ProductForm({
             <input className="field" value={p.origin} onChange={(e) => set("origin", e.target.value)} required />
           </Label>
           <Label text="kg당 가격 (원)">
-            <input className="field" type="number" min={100} step={100} value={p.pricePerKg} onChange={(e) => set("pricePerKg", Number(e.target.value))} required />
+            <input className="field" type="number" min={100} step={10} value={p.pricePerKg} onChange={(e) => set("pricePerKg", Number(e.target.value))} required />
           </Label>
           <Label text="판매 시작일">
             <input className="field" type="date" value={p.saleStart} onChange={(e) => set("saleStart", e.target.value)} required />
