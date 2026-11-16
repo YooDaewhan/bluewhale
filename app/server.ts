@@ -58,6 +58,7 @@ export const api = (fn: (req: Request) => Promise<unknown>) => async (req: Reque
     return r instanceof Response ? r : Response.json(r ?? { ok: true });
   } catch (e) {
     if (e instanceof HttpError) return Response.json({ error: e.message }, { status: e.status });
+    if (e && typeof e === "object" && "digest" in e) throw e; // Next's own control-flow errors (e.g. build-time prerender bailout)
     console.error(e);
     return Response.json({ error: "서버 오류가 발생했습니다." }, { status: 500 });
   }
