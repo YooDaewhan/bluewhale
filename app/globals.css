@@ -1,20 +1,17 @@
 @import "tailwindcss";
 
-/* Mascot palette: deep-sea navy ink, whale blue accent, sky tint, clean paper.
-   ponytail: token names (gold/ivory) kept from the old palette so 20+ files needn't change; values now follow the whale art */
+/* Quiet-luxury palette: ivory paper, warm ink, champagne gold, brand blue as a rare accent */
 @theme {
-  --color-ink-950: #0c2a45;
-  --color-ink-900: #15385a;
-  --color-ink-800: #0c2a45;
-  --color-ink-600: #4b6580;
-  --color-gold-300: #cfe7f7; /* sky / water */
-  --color-gold-400: #7cc4ee;
-  --color-gold-600: #0a7cc4; /* whale blue (accent text) */
-  --color-ivory: #f7fbfe;
-  --color-coral-500: #e8462a; /* apple red */
+  --color-ink-950: #1c1a17;
+  --color-ink-900: #2b2724;
+  --color-ink-800: #1c1a17;
+  --color-ink-600: #4a443e;
+  --color-gold-300: #e7d8bd;
+  --color-gold-400: #c9a96e;
+  --color-gold-600: #9c7a45;
+  --color-ivory: #f8f5ef;
+  --color-coral-500: #b5543f;
   --color-brand: #0a8bd6; /* logo blue */
-  --color-leaf: #4fa979; /* hat green */
-  --color-banana: #f6c219;
   --font-sans: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --font-serif: var(--font-cormorant), var(--font-noto-serif-kr), "Times New Roman", serif;
 }
