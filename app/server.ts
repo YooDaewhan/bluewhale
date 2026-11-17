@@ -10,7 +10,7 @@ import type { Order } from "./order-data";
 import type { Product, Slide, User } from "./store";
 import { HQ, tenantFrom } from "./tenant";
 
-const env = (name: string) => {
+export const env = (name: string) => {
   const v = process.env[name];
   if (!v) throw new Error(`환경변수 ${name} 가 없습니다 (.env.local 또는 서버 EnvironmentFile)`);
   return v;
@@ -176,7 +176,7 @@ export async function loadReservations(fid: number, full: boolean, onlyId?: numb
 }
 
 export async function loadOrders(fid: number, onlyId?: number): Promise<Order[]> {
-  const rows = await q(`SELECT * FROM orders WHERE franchise_id = ? ${onlyId ? "AND id = ?" : ""} ORDER BY id`, onlyId ? [fid, onlyId] : [fid]);
+  const rows = await q(`SELECT * FROM orders WHERE franchise_id = ? ${onlyId ? "AND id = ?" : "AND status <> '결제대기'"} ORDER BY id`, onlyId ? [fid, onlyId] : [fid]);
   const items = await q("SELECT i.* FROM order_items i JOIN orders o ON o.id = i.order_id WHERE o.franchise_id = ? ORDER BY i.id", [fid]);
   return rows.map((r) => ({
     id: orderId(r.id),

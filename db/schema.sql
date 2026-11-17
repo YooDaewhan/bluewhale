@@ -177,7 +177,7 @@ CREATE TABLE IF NOT EXISTS orders (
   address      VARCHAR(255) NOT NULL,
   message      VARCHAR(255) NOT NULL DEFAULT '',
   total        INT UNSIGNED NOT NULL,
-  status       ENUM('결제완료','발송완료','배송완료') NOT NULL DEFAULT '결제완료',
+  status       ENUM('결제대기','결제완료','발송완료','배송완료') NOT NULL DEFAULT '결제대기', -- 결제대기 = 토스 승인 전 (목록에 안 보임)
   carrier      VARCHAR(30)  NULL,
   tracking     VARCHAR(50)  NULL,
   shipped_at   DATETIME     NULL,
@@ -187,6 +187,9 @@ CREATE TABLE IF NOT EXISTS orders (
   FOREIGN KEY (franchise_id) REFERENCES franchises(id) ON DELETE CASCADE,
   FOREIGN KEY (member_id)    REFERENCES members(id)    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 기존 DB용 (여러 번 실행해도 같은 결과)
+ALTER TABLE orders MODIFY status ENUM('결제대기','결제완료','발송완료','배송완료') NOT NULL DEFAULT '결제대기';
 
 CREATE TABLE IF NOT EXISTS order_items (
   id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,

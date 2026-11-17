@@ -57,6 +57,8 @@ export function usePersisted<T>(key: string, initial: T) {
   return [value, setValue, ready] as const;
 }
 
+export type Pay = { orderId: string; orderName: string; amount: number }; // what the Toss widget needs
+
 // JSON call to our API. x-tenant carries the ?tenant= test switch (ignored by the server on real subdomains).
 async function call<T = unknown>(tenant: string, path: string, method = "GET", body?: unknown): Promise<T> {
   const form = body instanceof FormData;
@@ -99,7 +101,8 @@ type Store = ServerState & {
   clearCart: () => void;
   addReservation: (r: Omit<Reservation, "id" | "status" | "total">) => Promise<Reservation>;
   setReservationStatus: (id: string, status: ReservationStatus) => void;
-  addOrder: (o: Pick<Order, "name" | "phone" | "address" | "message"> & { lines: CartItem[] }) => Promise<Order>;
+  addOrder: (o: Pick<Order, "name" | "phone" | "address" | "message"> & { lines: CartItem[] }) => Promise<Pay>; // saved unpaid
+  confirmPayment: (p: { paymentKey: string; orderId: string; amount: number }) => Promise<Order>; // Toss successUrl params
   shipOrder: (id: string, carrier: string, tracking: string) => void;
   setOrderStatus: (id: string, status: OrderStatus) => void;
   uploadImage: (file: File) => Promise<string>; // → "/uploads/<tenant>/<file>.jpg"
@@ -212,9 +215,10 @@ function TenantStore({ tenant, children }: { tenant: string | null; children: Re
       call(t, "/api/reservations", "PATCH", { id, status }).catch(fail);
     },
     async addOrder(data) {
-      const { order } = await call<{ order: Order }>(t, "/api/orders", "POST", data);
-      setS((x) => ({ ...x, orders: [...x.orders, order] }));
-      return order;
+      return (await call<{ pay: Pay }>(t, "/api/orders", "POST", data)).pay;
+    },
+    async confirmPayment(p) {
+      return (await call<{ order: Order }>(t, "/api/orders", "PUT", p)).order;
     },
     shipOrder(id, carrier, tracking) {
       patch({ orders: s.orders.map((o) => (o.id === id ? { ...o, carrier, tracking, shippedAt: today, status: "발송완료" } : o)) });
