@@ -4,8 +4,9 @@
 import { useState } from "react";
 import { BASKET_CATEGORIES, basketCost, basketMeta, basketWeight, type BasketSize } from "../basket-data";
 import { compositionText, useStore, won, type Product } from "../store";
+import PhotosField from "./photos";
 
-const EMPTY: Omit<BasketSize, "id"> = { ko: "", en: "", category: "바구니", fruitCount: "", price: 0, serves: "", items: [], note: "", addons: [], desc: "", image: "", active: true };
+const EMPTY: Omit<BasketSize, "id"> = { ko: "", en: "", category: "바구니", fruitCount: "", price: 0, serves: "", items: [], note: "", addons: [], desc: "", image: "", photos: [], active: true };
 
 const margin = (price: number, cost: number) => (price > 0 ? Math.round(((price - cost) / price) * 100) : 0);
 
@@ -88,7 +89,6 @@ function BasketForm({
   onSave: (b: BasketSize | Omit<BasketSize, "id">) => void;
   onCancel: () => void;
 }) {
-  const { uploadImage } = useStore();
   const [b, setB] = useState(initial);
   const [error, setError] = useState("");
   const set = <K extends keyof BasketSize>(k: K, v: BasketSize[K]) => setB((x) => ({ ...x, [k]: v }));
@@ -219,22 +219,13 @@ function BasketForm({
         <Label text="설명">
           <textarea className="field" rows={2} value={b.desc} onChange={(e) => set("desc", e.target.value)} />
         </Label>
-        <div className="grid grid-cols-[80px_1fr] items-end gap-3">
-          <div className="h-[84px] w-20 overflow-hidden bg-gold-300/30">
-            {b.image ? <img src={b.image} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-3xl">🧺</div>}
-          </div>
-          <Label text="사진 (없으면 🧺 표시)">
-            <input
-              className="field"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) uploadImage(file).then((path) => set("image", path), (err: Error) => setError(err.message));
-              }}
-            />
-          </Label>
-        </div>
+        <Label text="사진 (없으면 🧺 표시)">
+          <PhotosField
+            value={[b.image, ...b.photos].filter(Boolean)}
+            onChange={([image = "", ...photos]) => setB((x) => ({ ...x, image, photos }))}
+            onError={setError}
+          />
+        </Label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={b.active} onChange={(e) => set("active", e.target.checked)} />
           고객 화면에 판매중으로 표시

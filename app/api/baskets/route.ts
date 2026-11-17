@@ -1,5 +1,5 @@
 import type { BasketSize } from "../../basket-data";
-import { api, bad, exec, getTenant, imagePath, loadBaskets, q, requireAdmin, str, tx } from "../../server";
+import { api, bad, exec, getTenant, imagePath, loadBaskets, q, requireAdmin, savePhotos, str, tx } from "../../server";
 
 // ponytail: whole-list sync like /api/products. Baskets are matched by slug, add-ons by id (so ids on past reservations stay valid).
 export const PUT = api(async (req) => {
@@ -17,6 +17,7 @@ export const PUT = api(async (req) => {
       if (id) await exec("UPDATE baskets SET name_ko=?, name_en=?, category=?, price=?, fruit_count=?, serves=?, note=?, description=?, image_path=?, active=?, sort_order=? WHERE id=?", [...v, id], c);
       else id = (await exec("INSERT INTO baskets (name_ko, name_en, category, price, fruit_count, serves, note, description, image_path, active, sort_order, franchise_id, slug) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", [...v, t.id, b.id], c)).insertId;
       keep.push(id);
+      await savePhotos("basket_photos", "basket_id", id, b.photos, c);
 
       await exec("DELETE FROM basket_items WHERE basket_id = ?", [id], c);
       for (const i of (b.items ?? []).filter((i) => products.has(i.productId) && i.kg > 0))

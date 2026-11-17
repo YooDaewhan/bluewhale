@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Gallery from "../../gallery";
 import { FruitImage, saleStatus, STATUS_EN, useStore, won } from "../../store";
 
 const KG_PRESETS = [1, 2, 3, 5];
@@ -48,10 +49,16 @@ export default function ProductDetail({ id }: { id: number }) {
 
       <div className="grid gap-10 md:grid-cols-[1.15fr_1fr] md:gap-16">
         <div className="md:sticky md:top-24 md:self-start">
-          <div className="relative aspect-[4/5] overflow-hidden bg-gold-300/30">
-            <FruitImage p={{ ...p, image: p.image.replace("w=640&h=480", "w=1200&h=1500") }} className={`h-full w-full text-[8rem] ${buyable ? "" : "opacity-60 grayscale"}`} />
-            <span className="absolute left-4 top-4 bg-ivory/90 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em]">{STATUS_EN[status]}</span>
-          </div>
+          {p.image ? (
+            <Gallery images={[p.image, ...p.photos]} alt={p.name} className={`aspect-[4/5] overflow-hidden bg-gold-300/30 ${buyable ? "" : "opacity-60 grayscale"}`}>
+              <span className="absolute left-4 top-4 bg-ivory/90 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em]">{STATUS_EN[status]}</span>
+            </Gallery>
+          ) : (
+            <div className="relative aspect-[4/5] overflow-hidden bg-gold-300/30">
+              <FruitImage p={p} className={`h-full w-full text-[8rem] ${buyable ? "" : "opacity-60 grayscale"}`} />
+              <span className="absolute left-4 top-4 bg-ivory/90 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em]">{STATUS_EN[status]}</span>
+            </div>
+          )}
         </div>
 
         <div>

@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { EXTRAS, OPTION_NOTES, WRAPS } from "../../basket-data";
+import Gallery from "../../gallery";
 import { FruitImage, useStore, won } from "../../store";
 
 export default function BasketDetail({ id }: { id: string }) {
@@ -34,13 +35,11 @@ export default function BasketDetail({ id }: { id: string }) {
 
       <div className="grid gap-10 md:grid-cols-[1.15fr_1fr] md:gap-16">
         <div className="md:sticky md:top-24 md:self-start">
-          <div className="aspect-[4/5] overflow-hidden bg-gold-300/30">
-            {b.image ? (
-              <img src={b.image.replace("w=900&h=1100", "w=1200&h=1500")} alt={`${b.ko} 과일 바구니`} className="h-full w-full object-cover" />
-            ) : (
-              <div className="grid h-full place-items-center text-[8rem]">🧺</div>
-            )}
-          </div>
+          {b.image ? (
+            <Gallery images={[b.image, ...b.photos]} alt={`${b.ko} 과일 바구니`} className="aspect-[4/5] overflow-hidden bg-gold-300/30" />
+          ) : (
+            <div className="grid aspect-[4/5] place-items-center bg-gold-300/30 text-[8rem]">🧺</div>
+          )}
         </div>
 
         <div>

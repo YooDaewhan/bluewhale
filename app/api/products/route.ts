@@ -1,4 +1,4 @@
-import { api, bad, exec, getTenant, imagePath, loadProducts, q, requireAdmin, str, tx } from "../../server";
+import { api, bad, exec, getTenant, imagePath, loadProducts, q, requireAdmin, savePhotos, str, tx } from "../../server";
 import type { Product } from "../../store";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -15,10 +15,12 @@ export const PUT = api(async (req) => {
     for (const p of list) {
       if (!str(p.name, 100) || !(p.pricePerKg > 0) || !DATE.test(p.saleStart) || !DATE.test(p.saleEnd)) throw bad("상품명, 가격, 판매 기간을 확인해주세요.");
       const v = [str(p.name, 100), str(p.emoji, 16), imagePath(p.image), str(p.origin, 100), Math.round(p.pricePerKg), str(p.description, 5000), p.saleStart, p.saleEnd];
-      if (have.has(p.id)) {
-        await exec("UPDATE products SET name=?, emoji=?, image_path=?, origin=?, price_per_kg=?, description=?, sale_start=?, sale_end=? WHERE id=?", [...v, p.id], c);
-        keep.push(p.id);
-      } else await exec("INSERT INTO products (name, emoji, image_path, origin, price_per_kg, description, sale_start, sale_end, franchise_id) VALUES (?,?,?,?,?,?,?,?,?)", [...v, t.id], c);
+      let id = p.id;
+      if (have.has(id)) {
+        await exec("UPDATE products SET name=?, emoji=?, image_path=?, origin=?, price_per_kg=?, description=?, sale_start=?, sale_end=? WHERE id=?", [...v, id], c);
+        keep.push(id);
+      } else id = (await exec("INSERT INTO products (name, emoji, image_path, origin, price_per_kg, description, sale_start, sale_end, franchise_id) VALUES (?,?,?,?,?,?,?,?,?)", [...v, t.id], c)).insertId;
+      await savePhotos("product_photos", "product_id", id, p.photos, c);
     }
     const gone = [...have].filter((id) => !keep.includes(id));
     if (gone.length) await exec("DELETE FROM products WHERE id IN (?)", [gone], c);

@@ -19,11 +19,12 @@ export type BasketSize = {
   addons: BasketAddon[];
   desc: string;
   image: string;
+  photos: string[]; // extra detail-page photos (after `image`)
   active: boolean; // hidden from customers when false
 };
 
 const b = (id: string, ko: string, en: string, category: string, price: number, fruitCount: string, image: string, desc: string, note = "", addons: BasketAddon[] = []): BasketSize => ({
-  id, ko, en, category, price, fruitCount, serves: "", items: [], note, addons, desc, image, active: true,
+  id, ko, en, category, price, fruitCount, serves: "", items: [], note, addons, desc, image, photos: [], active: true,
 });
 
 // 블루웨일 더 후르츠 2026 가격표

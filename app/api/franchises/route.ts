@@ -1,7 +1,7 @@
 import { api, bad, exec, getTenant, hashPassword, loadFranchises, q, requireAdmin, str, tx } from "../../server";
 import { HQ, RESERVED, TENANT_RE } from "../../tenant";
 
-// HQ only. New franchise = one franchises row + its admin account + a copy of the HQ menu (orders/reservations start empty).
+// HQ only. New franchise = one franchises row + its admin account + a copy of the HQ menu, photos and slides (orders/reservations start empty).
 export const POST = api(async (req) => {
   const hq = await getTenant();
   await requireAdmin(hq, true);
@@ -26,6 +26,7 @@ export const POST = api(async (req) => {
         c,
       );
       pid.set(p.id, r.insertId);
+      await exec("INSERT INTO product_photos (product_id, image_path, sort_order) SELECT ?, image_path, sort_order FROM product_photos WHERE product_id = ?", [r.insertId, p.id], c);
     }
     for (const b of await q("SELECT * FROM baskets WHERE franchise_id = ? ORDER BY id", [hq.id], c)) {
       const nb = (
@@ -38,7 +39,9 @@ export const POST = api(async (req) => {
       for (const i of await q("SELECT * FROM basket_items WHERE basket_id = ?", [b.id], c))
         await exec("INSERT INTO basket_items (basket_id, product_id, kg) VALUES (?,?,?)", [nb, pid.get(i.product_id), i.kg], c);
       await exec("INSERT INTO basket_addons (basket_id, name, price) SELECT ?, name, price FROM basket_addons WHERE basket_id = ? ORDER BY id", [nb, b.id], c);
+      await exec("INSERT INTO basket_photos (basket_id, image_path, sort_order) SELECT ?, image_path, sort_order FROM basket_photos WHERE basket_id = ?", [nb, b.id], c);
     }
+    await exec("INSERT INTO slides (franchise_id, image_path, eyebrow, title, body, pos, sort_order) SELECT ?, image_path, eyebrow, title, body, pos, sort_order FROM slides WHERE franchise_id = ?", [f, hq.id], c);
   });
   return { franchises: await loadFranchises() };
 });

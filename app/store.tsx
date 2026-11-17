@@ -12,6 +12,7 @@ export type Product = {
   id: number;
   emoji: string;
   image: string; // uploaded photo path (/uploads/...), emoji is the fallback
+  photos: string[]; // extra photos for the detail-page gallery (after `image`)
   name: string;
   origin: string;
   pricePerKg: number;
@@ -19,6 +20,7 @@ export type Product = {
   saleStart: string; // YYYY-MM-DD
   saleEnd: string;
 };
+export type Slide = { image: string; eyebrow: string; title: string; text: string; pos: string }; // main hero slide
 export type Role = "admin" | "customer";
 export type User = { id: string; name: string; role: Role };
 export type CartItem = { productId: number; kg: number };
@@ -73,13 +75,14 @@ type ServerState = {
   settings: Settings;
   products: Product[];
   baskets: BasketSize[];
+  slides: Slide[]; // empty = show the built-in DEFAULT_SLIDES
   reservations: Reservation[]; // customers get date/time/qty only (slot load); admins get everything
   user: User | null;
   orders: Order[]; // admin only
   members: Member[]; // admin only
   franchises: FranchiseRow[]; // HQ admin only
 };
-const EMPTY: ServerState = { tenant: HQ, settings: { fruitsEnabled: false }, products: [], baskets: [], reservations: [], user: null, orders: [], members: [], franchises: [] };
+const EMPTY: ServerState = { tenant: HQ, settings: { fruitsEnabled: false }, products: [], baskets: [], slides: [], reservations: [], user: null, orders: [], members: [], franchises: [] };
 
 type Store = ServerState & {
   setSettings: (fn: (s: Settings) => Settings) => void;
@@ -87,6 +90,7 @@ type Store = ServerState & {
   today: string;
   setProducts: (fn: (p: Product[]) => Product[]) => void;
   setBaskets: (fn: (b: BasketSize[]) => BasketSize[]) => void;
+  setSlides: (list: Slide[]) => Promise<void>;
   login: (id: string, pw: string) => Promise<User>; // admin login; rejects with the server message
   logout: () => void;
   cart: CartItem[];
@@ -173,6 +177,9 @@ function TenantStore({ tenant, children }: { tenant: string | null; children: Re
       const list = fn(s.baskets);
       patch({ baskets: list });
       call<Pick<ServerState, "baskets">>(t, "/api/baskets", "PUT", { list }).then(patch).catch(fail);
+    },
+    async setSlides(list) {
+      patch(await call<Pick<ServerState, "slides">>(t, "/api/slides", "PUT", { list }));
     },
     setSettings(fn) {
       const settings = fn(s.settings);

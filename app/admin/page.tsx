@@ -10,15 +10,17 @@ import FranchisesAdmin from "./franchises";
 import BasketsAdmin from "./baskets";
 import MembersAdmin from "./members";
 import ShippingAdmin from "./shipping";
+import SlidesAdmin from "./slides";
+import PhotosField from "./photos";
 
-const EMPTY: Omit<Product, "id"> = { emoji: "🍍", image: "", name: "", origin: "", pricePerKg: 10000, description: "", saleStart: "", saleEnd: "" };
+const EMPTY: Omit<Product, "id"> = { emoji: "🍍", image: "", photos: [], name: "", origin: "", pricePerKg: 10000, description: "", saleStart: "", saleEnd: "" };
 const STATUS_LABEL = { onsale: "판매중", upcoming: "판매예정", ended: "판매종료" };
 
 export default function AdminPage() {
   const { ready, today, user, products, setProducts, tenant } = useStore();
   const [editing, setEditing] = useState<Product | Omit<Product, "id"> | null>(null);
   // 새로고침해도 보던 탭이 유지되도록 localStorage에 저장
-  const [tab, setTab, tabReady] = usePersisted<"reservations" | "shipping" | "members" | "products" | "franchises">("admin-tab", "reservations");
+  const [tab, setTab, tabReady] = usePersisted<"reservations" | "shipping" | "members" | "products" | "slides" | "franchises">("admin-tab", "reservations");
   const [kind, setKind] = usePersisted<"basket" | "fruit">("admin-kind", "basket");
 
   if (!ready || !tabReady) return null;
@@ -43,7 +45,7 @@ export default function AdminPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-10 flex gap-6 overflow-x-auto overflow-y-hidden whitespace-nowrap border-b border-ink-900/10" role="tablist">
-        {([["reservations", "픽업 예약 캘린더"], ["shipping", "주문 · 발송"], ["members", "회원 관리"], ["products", "상품 관리"], ["franchises", "프렌차이즈 관리"]] as const)
+        {([["reservations", "픽업 예약 캘린더"], ["shipping", "주문 · 발송"], ["members", "회원 관리"], ["products", "상품 관리"], ["slides", "메인 슬라이드"], ["franchises", "프렌차이즈 관리"]] as const)
           .filter(([key]) => key !== "franchises" || tenant === "hq")
           .map(([key, label]) => (
           <button
@@ -60,6 +62,8 @@ export default function AdminPage() {
 
       {tab === "franchises" ? (
         <FranchisesAdmin />
+      ) : tab === "slides" ? (
+        <SlidesAdmin />
       ) : tab === "members" ? (
         <MembersAdmin />
       ) : tab === "shipping" ? (
@@ -164,11 +168,6 @@ function ProductForm({
   const [error, setError] = useState("");
   const set = <K extends keyof Product>(k: K, v: Product[K]) => setP((x) => ({ ...x, [k]: v }));
 
-  const { uploadImage } = useStore();
-  // the file is uploaded to the server right away; the product only stores its path
-  function pickImage(file?: File) {
-    if (file) uploadImage(file).then((path) => set("image", path), (e: Error) => setError(e.message));
-  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -184,12 +183,13 @@ function ProductForm({
         <Label text="상품명">
           <input className="field" value={p.name} onChange={(e) => set("name", e.target.value)} required />
         </Label>
-        <div className="grid grid-cols-[80px_1fr] items-end gap-3">
-          <FruitImage key={p.image} p={p} className="h-[68px] w-20 rounded-sm text-3xl" />
-          <Label text="상품 사진">
-            <input className="field" type="file" accept="image/*" onChange={(e) => pickImage(e.target.files?.[0])} />
-          </Label>
-        </div>
+        <Label text="상품 사진 (없으면 이모지 표시)">
+          <PhotosField
+            value={[p.image, ...p.photos].filter(Boolean)}
+            onChange={([image = "", ...photos]) => setP((x) => ({ ...x, image, photos }))}
+            onError={setError}
+          />
+        </Label>
         <div className="grid grid-cols-2 gap-3">
           <Label text="원산지">
             <input className="field" value={p.origin} onChange={(e) => set("origin", e.target.value)} required />

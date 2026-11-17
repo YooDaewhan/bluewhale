@@ -83,6 +83,37 @@ CREATE TABLE IF NOT EXISTS baskets (
   FOREIGN KEY (franchise_id) REFERENCES franchises(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 상세 페이지 추가 사진 (대표 사진은 products/baskets.image_path, 여기는 2번째 사진부터)
+CREATE TABLE IF NOT EXISTS product_photos (
+  id         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  product_id INT UNSIGNED NOT NULL,
+  image_path VARCHAR(255) NOT NULL,
+  sort_order INT          NOT NULL DEFAULT 0,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS basket_photos (
+  id         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  basket_id  INT UNSIGNED NOT NULL,
+  image_path VARCHAR(255) NOT NULL,
+  sort_order INT          NOT NULL DEFAULT 0,
+  FOREIGN KEY (basket_id) REFERENCES baskets(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 메인 슬라이드. 가맹점에 한 장도 없으면 화면은 기본 슬라이드(hero-slider.tsx DEFAULT_SLIDES)를 보여준다.
+CREATE TABLE IF NOT EXISTS slides (
+  id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  franchise_id INT UNSIGNED NOT NULL,
+  image_path   VARCHAR(255) NOT NULL,
+  eyebrow      VARCHAR(100) NOT NULL DEFAULT '',
+  title        VARCHAR(200) NOT NULL DEFAULT '',
+  body         VARCHAR(300) NOT NULL DEFAULT '',
+  pos          VARCHAR(20)  NOT NULL DEFAULT '50% 50%',   -- 사진 기준점 (object-position)
+  sort_order   INT          NOT NULL DEFAULT 0,
+  KEY (franchise_id),
+  FOREIGN KEY (franchise_id) REFERENCES franchises(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- 바구니 구성 예시 (어떤 과일 몇 kg)
 CREATE TABLE IF NOT EXISTS basket_items (
   basket_id  INT UNSIGNED NOT NULL,

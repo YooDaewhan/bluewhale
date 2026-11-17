@@ -19,7 +19,7 @@ async function api(path, method = "GET", body, { tenant = "hq", auth = true } = 
   return { status: res.status, data: await res.json().catch(() => ({})) };
 }
 const slug = "t" + Date.now().toString(36);
-const fruit = { id: 0, emoji: "🥭", image: "", name: "테스트망고", origin: "테스트", pricePerKg: 10000, description: "d", saleStart: "2026-01-01", saleEnd: "2099-12-31" };
+const fruit = { id: 0, emoji: "🥭", image: "", photos: [], name: "테스트망고", origin: "테스트", pricePerKg: 10000, description: "d", saleStart: "2026-01-01", saleEnd: "2099-12-31" };
 
 test("visitors see the menu but no personal data, and cannot write", async () => {
   const { data } = await api("/api/state", "GET", undefined, { auth: false });
@@ -55,8 +55,20 @@ test("photo upload stores a file and serves it back; links are refused", async (
   const cur = (await api("/api/state")).data.products;
   assert.equal((await api("/api/products", "PUT", { list: [...cur, { ...fruit, image: "https://example.com/a.jpg" }] })).status, 400);
 
-  const saved = await api("/api/products", "PUT", { list: [...cur, { ...fruit, image: up.data.path }] });
+  const saved = await api("/api/products", "PUT", { list: [...cur, { ...fruit, image: up.data.path, photos: [up.data.path, "/slides/1.jpg"] }] });
   assert.equal(saved.data.products.at(-1).image, up.data.path);
+  assert.deepEqual(saved.data.products.at(-1).photos, [up.data.path, "/slides/1.jpg"]);
+  assert.equal((await api("/api/products", "PUT", { list: [...cur, { ...fruit, photos: ["https://example.com/a.jpg"] }] })).status, 400);
+});
+
+test("main slides: admin replaces the list, visitors read it, empty list = defaults", async () => {
+  const before = (await api("/api/state")).data.slides;
+  const s = { image: "/slides/2.jpg", eyebrow: "E", title: "제목\n둘째 줄", text: "설명", pos: "50% 15%" };
+  assert.equal((await api("/api/slides", "PUT", { list: [s] }, { auth: false })).status, 401);
+  assert.equal((await api("/api/slides", "PUT", { list: [{ ...s, image: "" }] })).status, 400);
+  assert.deepEqual((await api("/api/slides", "PUT", { list: [s, { ...s, pos: "bad" }] })).data.slides, [s, { ...s, pos: "50% 50%" }]);
+  assert.deepEqual((await api("/api/state", "GET", undefined, { auth: false })).data.slides.length, 2);
+  assert.equal((await api("/api/slides", "PUT", { list: before })).status, 200); // restore
 });
 
 test("reservation and order are priced by the server, then handled by the admin", async () => {

@@ -7,7 +7,7 @@ import { cookies, headers } from "next/headers";
 import type { BasketSize, Reservation } from "./basket-data";
 import type { Member } from "./member-data";
 import type { Order } from "./order-data";
-import type { Product, User } from "./store";
+import type { Product, Slide, User } from "./store";
 import { HQ, tenantFrom } from "./tenant";
 
 const env = (name: string) => {
@@ -122,18 +122,32 @@ export function verifyPassword(pw: string, stored: string) {
 // ── loaders (DB rows → the shapes the client store already uses) ──
 export async function loadProducts(fid: number, conn?: PoolConnection): Promise<Product[]> {
   const rows = await q("SELECT * FROM products WHERE franchise_id = ? ORDER BY id", [fid], conn);
-  return rows.map((r) => ({ id: r.id, emoji: r.emoji, image: r.image_path, name: r.name, origin: r.origin, pricePerKg: r.price_per_kg, description: r.description, saleStart: r.sale_start, saleEnd: r.sale_end }));
+  const photos = await q("SELECT x.* FROM product_photos x JOIN products p ON p.id = x.product_id WHERE p.franchise_id = ? ORDER BY x.sort_order, x.id", [fid], conn);
+  return rows.map((r) => ({ id: r.id, emoji: r.emoji, image: r.image_path, photos: photos.filter((x) => x.product_id === r.id).map((x) => x.image_path), name: r.name, origin: r.origin, pricePerKg: r.price_per_kg, description: r.description, saleStart: r.sale_start, saleEnd: r.sale_end }));
 }
 
 export async function loadBaskets(fid: number, conn?: PoolConnection): Promise<BasketSize[]> {
   const rows = await q("SELECT * FROM baskets WHERE franchise_id = ? ORDER BY sort_order, id", [fid], conn);
   const items = await q("SELECT i.* FROM basket_items i JOIN baskets b ON b.id = i.basket_id WHERE b.franchise_id = ?", [fid], conn);
   const addons = await q("SELECT a.* FROM basket_addons a JOIN baskets b ON b.id = a.basket_id WHERE b.franchise_id = ? ORDER BY a.id", [fid], conn);
+  const photos = await q("SELECT x.* FROM basket_photos x JOIN baskets b ON b.id = x.basket_id WHERE b.franchise_id = ? ORDER BY x.sort_order, x.id", [fid], conn);
   return rows.map((r) => ({
-    id: r.slug, ko: r.name_ko, en: r.name_en, category: r.category, price: r.price, fruitCount: r.fruit_count, serves: r.serves, note: r.note, desc: r.description, image: r.image_path, active: !!r.active,
+    id: r.slug, ko: r.name_ko, en: r.name_en, category: r.category, price: r.price, fruitCount: r.fruit_count, serves: r.serves, note: r.note, desc: r.description, image: r.image_path, photos: photos.filter((x) => x.basket_id === r.id).map((x) => x.image_path), active: !!r.active,
     items: items.filter((i) => i.basket_id === r.id).map((i) => ({ productId: i.product_id, kg: Number(i.kg) })),
     addons: addons.filter((a) => a.basket_id === r.id).map((a) => ({ id: String(a.id), name: a.name, price: a.price })),
   }));
+}
+
+// replaces the extra gallery photos of one product/basket
+export async function savePhotos(table: "product_photos" | "basket_photos", col: "product_id" | "basket_id", id: number, list: unknown, conn: PoolConnection) {
+  const paths = (Array.isArray(list) ? list : []).slice(0, 20).map(imagePath).filter(Boolean);
+  await exec(`DELETE FROM ${table} WHERE ${col} = ?`, [id], conn);
+  for (const [n, p] of paths.entries()) await exec(`INSERT INTO ${table} (${col}, image_path, sort_order) VALUES (?,?,?)`, [id, p, n], conn);
+}
+
+export async function loadSlides(fid: number, conn?: PoolConnection): Promise<Slide[]> {
+  const rows = await q("SELECT * FROM slides WHERE franchise_id = ? ORDER BY sort_order, id", [fid], conn);
+  return rows.map((r) => ({ image: r.image_path, eyebrow: r.eyebrow, title: r.title, text: r.body, pos: r.pos }));
 }
 
 export const resId = (id: number) => `R-${id}`;
